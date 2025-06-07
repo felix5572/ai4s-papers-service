@@ -1,0 +1,87 @@
+1. 获取文件树 
+请求示例
+
+parentId - 父级 id，可选，或者 null | undefined。
+searchKey - 检索词，可选
+curl --location --request POST '{{baseURL}}/v1/file/list' \
+--header 'Authorization: Bearer {{authorization}}' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "parentId": "",
+    "searchKey": ""
+}'
+
+响应示例
+
+{
+    "code": 200,
+    "success": true,
+    "message": "",
+    "data": {
+        "url": "xxxx"
+    }
+}
+
+
+
+2. 获取单个文件内容（文本内容或访问链接） 
+请求示例
+curl --location --request GET '{{baseURL}}/v1/file/content?id=xx' \
+--header 'Authorization: Bearer {{authorization}}'
+
+{
+    "code": 200,
+    "success": true,
+    "message": "",
+    "data": {
+        "title": "文档标题",
+        "content": "FastGPT 是一个基于 LLM 大语言模型的知识库问答系统，提供开箱即用的数据处理、模型调用等能力。同时可以通过 Flow 可视化进行工作流编排，从而实现复杂的问答场景！\n",
+        "previewUrl": "xxxx"
+    }
+}
+title - 文件标题。
+content - 文件内容，直接拿来用。
+previewUrl - 文件链接，系统会请求该地址获取文件内容。
+content和previewUrl二选一返回，如果同时返回则 content 优先级更高，返回 previewUrl时，则会访问该链接进行文档内容读取。
+
+3. 获取文件阅读链接（用于查看原文） 
+请求示例
+
+id 为文件的 id。
+
+curl --location --request GET '{{baseURL}}/v1/file/read?id=xx' \
+--header 'Authorization: Bearer {{authorization}}'
+
+响应示例
+
+{
+    "code": 200,
+    "success": true,
+    "message": "",
+    "data": {
+        "url": "xxxx"
+    }
+}
+url - 文件访问链接，拿到后会自动打开。
+
+
+4. 获取文件详细信息（用于获取文件信息） 
+请求示例
+
+id 为文件的 id。
+
+curl --location --request GET '{{baseURL}}/v1/file/detail?id=xx' \
+--header 'Authorization: Bearer {{authorization}}'
+
+响应示例
+
+{
+    "code": 200,
+    "success": true,
+    "message": "",
+    "data": {
+        "id": "docs",
+        "parentId": "",
+        "name": "docs"
+    }
+}
