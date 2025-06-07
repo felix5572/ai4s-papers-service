@@ -5,7 +5,7 @@ from .models import Paper
 from .schemas import PaperOut
 
 # Create separate API instance for file operations
-file_api = NinjaAPI(title="Files API", version="1.0.0")
+file_api = NinjaAPI(title="Files API", version="1.0.0", urls_namespace="file_api")
 
 # Domain configuration - add your domains here
 PRIMARY_DOMAINS_LIST = [

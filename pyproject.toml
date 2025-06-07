@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ai4s-papers-service"
-version = "0.1.0"
+version = "0.1.1"
 description = "AI4S papers management service API"
 authors = ["felix5572@github.com"]
 package-mode = false
