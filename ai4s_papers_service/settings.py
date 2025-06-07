@@ -30,11 +30,21 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-fallback-key-for-developme
 DEBUG = os.getenv('DEBUG', 'True') == 'True'  
 
 # Allow specific hosts for security
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', 'deepmd.us', 'ai4s-papers-service.deepmd.us', '*.zeabur.app']
+ALLOWED_HOSTS = [
+    'localhost', 
+    '127.0.0.1', 
+    '0.0.0.0', 
+    'deepmd.us',
+    '*.zeabur.app',
+    'ai4s-papers-service.deepmd.us',
+    'ai4s-papers-service.zeabur.app',  # Zeabur默认域名
+    
+]
 
 # CSRF trusted origins for production
 CSRF_TRUSTED_ORIGINS = [
     'https://ai4s-papers-service.deepmd.us',
+    'https://ai4s-papers-service.zeabur.app',  # Zeabur默认域名
     'https://*.deepmd.us',
     'https://*.zeabur.app',
 ]
