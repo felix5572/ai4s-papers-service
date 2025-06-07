@@ -20,7 +20,7 @@ curl -X POST http://localhost:8000/api/papers/upload \
   -F "arxiv_id=2024.upload" \
   -F "tags=upload, file, complete" \
   -F "pdf_file=@test_DeePMD-kit.pdf" \
-  -F "markdown_file=@test.txt"
+  -F "markdown_file=@test_DeePMD-kit.md"
 
 curl -X POST localhost:8000/api/file/v1/file/list \
   -H "Content-Type: application/json" -d '{}'
