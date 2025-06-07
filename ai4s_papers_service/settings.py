@@ -32,6 +32,13 @@ DEBUG = os.getenv('DEBUG', 'True') == 'True'
 # Allow specific hosts for security
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', 'deepmd.us', 'ai4s-papers-service.deepmd.us', '*.zeabur.app']
 
+# CSRF trusted origins for production
+CSRF_TRUSTED_ORIGINS = [
+    'https://ai4s-papers-service.deepmd.us',
+    'https://*.deepmd.us',
+    'https://*.zeabur.app',
+]
+
 
 # Application definition
 
