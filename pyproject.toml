@@ -3,7 +3,7 @@ name = "ai4s-papers-service"
 version = "0.1.0"
 description = "AI4S papers management service API"
 authors = ["felix5572@github.com"]
-readme = "README.md"
+package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.12"
