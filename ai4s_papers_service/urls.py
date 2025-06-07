@@ -16,10 +16,15 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from django.shortcuts import redirect
 from papers_db.api import api
 from papers_db.file_api import file_api
 
+def redirect_to_admin(request):
+    return redirect('/admin/')
+
 urlpatterns = [
+    path('', redirect_to_admin),  # Root redirects to admin
     path('admin/', admin.site.urls),
     path('api/', api.urls),
     path('api/file/', file_api.urls),
