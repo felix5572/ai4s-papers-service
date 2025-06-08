@@ -7,7 +7,7 @@ from .schemas import PaperOut
 from datetime import datetime
 
 # Create separate API instance for file operations
-file_api = NinjaAPI(title="Files API", version="1.0.0", urls_namespace="file_api")
+file_api = NinjaAPI(title="Files API", version="1.0.0", urls_namespace="file_api", csrf=False)
 
 # Domain configuration - add your domains here
 PRIMARY_DOMAINS_LIST = [
@@ -33,32 +33,32 @@ def list_files(request, payload: FileListRequest):
         for domain in PRIMARY_DOMAINS_LIST:
             count = Paper.objects.filter(primary_domain=domain).count()
             folders.append({
-                "id": domain,
+                "id": domain + '/',
                 "parentId": None,
                 "type": "folder",
                 "name": domain,
-                "updateTime":datetime.now().isoformat(),
-                "createTime":datetime.now().isoformat()
-                # "count": count
+                "updateTime": datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
+                "createTime": datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%fZ')
             })
         
         return {
             "code": 200,
             "success": True,
             "message": "",
-            "data": {"files": folders}
+            "data": folders  # Remove the "files" wrapper
         }
     
     # Return papers in domain
-    query = Paper.objects.filter(primary_domain=payload.parentId)
+    query = Paper.objects.filter(primary_domain=payload.parentId.rstrip('/'))
     
     # Add search filter
     search_key = payload.searchKey or ""
-    query = query.filter(
-        Q(title__icontains=search_key) |
-        Q(authors__icontains=search_key) |
-        Q(keywords__icontains=search_key)
-    )
+    if search_key:
+        query = query.filter(
+            Q(title__icontains=search_key) |
+            Q(authors__icontains=search_key) |
+            Q(keywords__icontains=search_key)
+        )
     
     papers = query.order_by('-year', 'title')
     
@@ -69,15 +69,15 @@ def list_files(request, payload: FileListRequest):
             "parentId": payload.parentId,
             "name": f"{paper.year} {paper.title}",
             "type": "file",
-            "year": paper.year,
-            "authors": paper.authors
+            "updateTime": datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
+            "createTime": datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%fZ')
         })
     
     return {
         "code": 200,
         "success": True, 
         "message": "",
-        "data": {"files": files}
+        "data": files  # Remove the "files" wrapper
     }
 
 @file_api.get("/v1/file/content")
