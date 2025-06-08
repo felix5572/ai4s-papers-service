@@ -28,5 +28,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', api.urls),
     # path('api/file/', file_api.urls),
-    path('v1/file/', file_api.urls),  # Direct mapping - no redirect needed
+    path('api/fastgpt/', file_api.urls),  # Direct mapping - no redirect needed
 ]

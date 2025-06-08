@@ -28,12 +28,12 @@ curl -X POST http://localhost:8000/api/papers/upload \
   -F "pdf_file=@test_DeePMD-kit.pdf" \
   -F "markdown_file=@test_DeePMD-kit.md"
 
-curl -X POST localhost:8000/api/file/v1/file/list \
+curl -X POST localhost:8000/api/fastgpt/v1/file/list \
   -H "Content-Type: application/json" -d '{}'
 
 # curl -X POST https://ai4s-papers-service.deepmd.us/v1/file/list -H "Content-Type: application/json" -d '{}'
 
-curl -X POST localhost:8000/api/file/v1/file/list \
+curl -X POST localhost:8000/api/fastgpt/v1/file/list \
   -H "Content-Type: application/json" -d '{"parentId":"test","searchKey":""}'
 
 
