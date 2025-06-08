@@ -34,9 +34,11 @@ def list_files(request, payload: FileListRequest):
             folders.append({
                 "id": domain,
                 "parentId": None,
-                "name": f"domain_{domain}",
                 "type": "folder",
-                "count": count
+                "name": domain,
+                "updateTime":datetime.now().isoformat(),
+                "createTime":datetime.now().isoformat()
+                # "count": count
             })
         
         return {
