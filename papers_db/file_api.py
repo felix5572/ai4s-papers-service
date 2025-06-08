@@ -1,7 +1,6 @@
 from ninja import NinjaAPI, Schema
 from django.db.models import Count, Q
-from django.views.decorators.csrf import csrf_exempt
-from typing import Optional, Dict, Any
+from typing import Optional
 from .models import Paper
 from .schemas import PaperOut
 from datetime import datetime
@@ -9,7 +8,7 @@ from datetime import datetime
 # Create separate API instance for file operations
 file_api = NinjaAPI(title="Files API", version="1.0.0", urls_namespace="file_api", csrf=False)
 
-# Domain configuration - add your domains here
+# Configuration
 PRIMARY_DOMAINS_LIST = [
     "deepmd",
     "abacus", 
@@ -21,8 +20,6 @@ PRIMARY_DOMAINS_LIST = [
 class FileListRequest(Schema):
     parentId: Optional[str] = None
     searchKey: Optional[str] = None
-
-
 
 @file_api.post("/v1/file/list")
 def list_files(request, payload: FileListRequest):

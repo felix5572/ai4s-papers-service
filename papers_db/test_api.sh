@@ -31,7 +31,7 @@ curl -X POST http://localhost:8000/api/papers/upload \
 curl -X POST localhost:8000/api/fastgpt/v1/file/list \
   -H "Content-Type: application/json" -d '{}'
 
-# curl -X POST https://ai4s-papers-service.deepmd.us/v1/file/list -H "Content-Type: application/json" -d '{}'
+curl -X POST https://ai4s-papers-service.deepmd.us/api/fastgpt/v1/file/list -H "Content-Type: application/json" -d '{"parentId":"test","searchKey":""}'
 
 curl -X POST localhost:8000/api/fastgpt/v1/file/list \
   -H "Content-Type: application/json" -d '{"parentId":"test","searchKey":""}'
@@ -47,6 +47,19 @@ curl "localhost:8000/api/file/v1/file/content?id=paper_99999"
 curl "localhost:8000/api/file/pdf/7" --output test.pdf
 
 curl "localhost:8000/api/file/v1/file/detail?id=paper_7"
+
+
+# curl -X POST "https://ai4s-papers-service.deepmd.us/api/papers/upload-parse" \
+curl -X POST "http://localhost:8000/api/papers/upload-parse" \
+  -F "title=Test Paper with Parsing" \
+  -F "authors=Parse Author" \
+  -F "year=2024" \
+  -F "primary_domain=test" \
+  -F "journal=Parse Journal" \
+  -F "abstract=This paper will be parsed" \
+  -F "keywords=parsing, test, async" \
+  -F "doi=10.1000/parse.test" \
+  -F "pdf_file=@test_DeePMD-kit.pdf"
 
 # # # test get papers again
 # # curl -X GET http://localhost:8000/api/papers

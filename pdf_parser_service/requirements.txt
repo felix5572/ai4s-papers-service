@@ -1,0 +1,24 @@
+# PDF Parser Microservice Dependencies
+# Modal framework for serverless GPU computing
+modal>=0.65.0
+
+# PDF parsing engines
+docling>=1.8.0
+marker-pdf[full]>=0.2.12
+
+# Core ML/AI dependencies
+torch>=2.1.0
+torchvision>=0.16.0
+transformers>=4.35.0
+
+# Web framework for API endpoints
+fastapi>=0.100.0
+uvicorn[standard]>=0.24.0
+python-multipart>=0.0.6
+
+# System dependencies (installed via apt in Modal image)
+# - poppler-utils (for PDF utilities)
+# - tesseract-ocr (for OCR capabilities)
+
+# HTTP client for external requests
+requests>=2.31.0 

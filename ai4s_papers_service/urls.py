@@ -26,7 +26,6 @@ def redirect_to_admin(request):
 urlpatterns = [
     path('', redirect_to_admin),
     path('admin/', admin.site.urls),
-    path('api/', api.urls),
-    # path('api/file/', file_api.urls),
-    path('api/fastgpt/', file_api.urls),  # Direct mapping - no redirect needed
+    path('api/', api.urls),  # 启用通用API
+    path('api/fastgpt/', file_api.urls),  # FastGPT-style API
 ]
