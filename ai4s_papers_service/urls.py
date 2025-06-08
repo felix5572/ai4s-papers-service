@@ -17,7 +17,6 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from django.shortcuts import redirect
-from django.views.generic import RedirectView
 from papers_db.api import api
 from papers_db.file_api import file_api
 
@@ -28,11 +27,6 @@ urlpatterns = [
     path('', redirect_to_admin),
     path('admin/', admin.site.urls),
     path('api/', api.urls),
-    path('api/file/', file_api.urls),
-    
-    # 
-    path('v1/file/list', RedirectView.as_view(url='/api/file/v1/file/list')),
-    path('v1/file/content', RedirectView.as_view(url='/api/file/v1/file/content')),
-    path('v1/file/read', RedirectView.as_view(url='/api/file/v1/file/read')),
-    path('v1/file/detail', RedirectView.as_view(url='/api/file/v1/file/detail')),
+    # path('api/file/', file_api.urls),
+    path('v1/file/', file_api.urls),  # Direct mapping - no redirect needed
 ]
