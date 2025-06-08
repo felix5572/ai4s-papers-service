@@ -6,7 +6,7 @@ from .schemas import PaperOut, PaperIn, PaperFileUpload
 
 
 # 创建API实例
-api = NinjaAPI(title="Papers API")
+api = NinjaAPI(title="Papers API", csrf=False)
 
 
 @api.get("/papers", response=list[PaperOut])
