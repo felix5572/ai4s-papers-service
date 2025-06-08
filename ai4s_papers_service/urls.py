@@ -15,7 +15,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, re_path
 from django.shortcuts import redirect
 from papers_db.api import api
 from papers_db.file_api import file_api
@@ -28,4 +28,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', api.urls),
     path('api/file/', file_api.urls),
+    
+    # 简化路由重写 - 模仿FastGPT S3 API路径
+    path('v1/file/', file_api.urls),  # 直接映射到file_api
 ]

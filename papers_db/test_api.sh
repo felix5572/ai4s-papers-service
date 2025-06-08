@@ -3,6 +3,12 @@
 # test get papers
 curl -X GET http://localhost:8000/api/papers
 
+curl -X GET https://ai4s-papers-service.deepmd.us/api/papers
+
+curl -X GET https://ai4s-papers-service.deepmd.us/api/papers
+
+# curl -X POST https://ai4s-papers-service.deepmd.us/v1/file/list -H "Content-Type: application/json" -d '{}'
+
 # test create paper
 curl -X POST http://localhost:8000/api/papers \
   -H "Content-Type: application/json" \
@@ -24,6 +30,8 @@ curl -X POST http://localhost:8000/api/papers/upload \
 
 curl -X POST localhost:8000/api/file/v1/file/list \
   -H "Content-Type: application/json" -d '{}'
+
+# curl -X POST https://ai4s-papers-service.deepmd.us/v1/file/list -H "Content-Type: application/json" -d '{}'
 
 curl -X POST localhost:8000/api/file/v1/file/list \
   -H "Content-Type: application/json" -d '{"parentId":"test","searchKey":""}'
