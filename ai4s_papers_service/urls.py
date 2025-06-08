@@ -15,8 +15,9 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, re_path
+from django.urls import path
 from django.shortcuts import redirect
+from django.views.generic import RedirectView
 from papers_db.api import api
 from papers_db.file_api import file_api
 
@@ -24,11 +25,14 @@ def redirect_to_admin(request):
     return redirect('/admin/')
 
 urlpatterns = [
-    path('', redirect_to_admin),  # Root redirects to admin
+    path('', redirect_to_admin),
     path('admin/', admin.site.urls),
     path('api/', api.urls),
     path('api/file/', file_api.urls),
     
-    # 简化路由重写 - 模仿FastGPT S3 API路径
-    path('v1/file/', file_api.urls),  # 直接映射到file_api
+    # 
+    path('v1/file/list', RedirectView.as_view(url='/api/file/v1/file/list')),
+    path('v1/file/content', RedirectView.as_view(url='/api/file/v1/file/content')),
+    path('v1/file/read', RedirectView.as_view(url='/api/file/v1/file/read')),
+    path('v1/file/detail', RedirectView.as_view(url='/api/file/v1/file/detail')),
 ]
