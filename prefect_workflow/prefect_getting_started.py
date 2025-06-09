@@ -27,7 +27,7 @@ def prefect_getting_started() -> list[str]:
     summary = summarize_results(results)
 
     create_markdown_artifact(
-        key="return_value",
+        key="return-value", 
         markdown=summary,
         description="return value: summary of results",
     )
