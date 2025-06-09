@@ -1,5 +1,6 @@
 from prefect import flow, task
 import random
+from prefect.artifacts import create_markdown_artifact
 
 @task
 def get_customer_ids() -> list[str]:
