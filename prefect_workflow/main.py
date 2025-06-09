@@ -3,6 +3,7 @@
 Zeabur deployment entry point
 """
 import os
+from prefect import serve
 from dotenv import load_dotenv
 from prefect_getting_started import prefect_getting_started
 from hello_world import hello_world
