@@ -7,3 +7,4 @@ def hello_world(name: str = "world", goodbye: bool = False):
 
     if goodbye:
         print(f"Goodbye {name}!")
+    return f"Hello {name} from Prefect!"

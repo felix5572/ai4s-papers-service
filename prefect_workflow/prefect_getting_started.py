@@ -11,7 +11,9 @@ def process_customer(customer_id: str) -> str:
     # Process a single customer
     return f"Processed {customer_id}"
 
-@flow
+@flow(
+    persist_result=True,
+)
 def prefect_getting_started() -> list[str]:
     customer_ids = get_customer_ids()
     # Map the process_customer task across all customer IDs
