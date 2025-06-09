@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "prefect-workflow"
+version = "0.1.0"
+description = "Simple Prefect workflow for Zeabur deployment"
+authors = [
+    { name = "felix5572", email = "felix5572@github.com" }
+]
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.8"
+dependencies = [
+    "prefect>=3.0.0,<4.0.0",
+    "python-dotenv>=1.0.0,<2.0.0"
+]
+
+[project.scripts]
+start = "main:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["*"] 

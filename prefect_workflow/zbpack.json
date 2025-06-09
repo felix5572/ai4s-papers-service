@@ -1,0 +1,6 @@
+{
+  "build_command": "pip install .",
+  "start_command": "python main.py",
+  "install_command": "pip install .",
+  "framework": "python"
+} 
