@@ -11,6 +11,10 @@ def process_customer(customer_id: str) -> str:
     # Process a single customer
     return f"Processed {customer_id}"
 
+@task
+def summarize_results(results: list[str]) -> str:
+    return f"Summarized {len(results)} results: {results}"
+
 @flow(
     persist_result=True,
 )
@@ -18,7 +22,8 @@ def prefect_getting_started() -> list[str]:
     customer_ids = get_customer_ids()
     # Map the process_customer task across all customer IDs
     results = process_customer.map(customer_ids)
-    return results
+    summary = summarize_results(results)
+    return summary
 
 
 if __name__ == "__main__":
