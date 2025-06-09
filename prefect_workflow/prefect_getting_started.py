@@ -17,12 +17,19 @@ def summarize_results(results: list[str]) -> str:
 
 @flow(
     persist_result=True,
+    # result_storage="s3-bucket/sealos-bja-prefect-storage-s3",
 )
 def prefect_getting_started() -> list[str]:
     customer_ids = get_customer_ids()
     # Map the process_customer task across all customer IDs
     results = process_customer.map(customer_ids)
     summary = summarize_results(results)
+
+    create_markdown_artifact(
+        key="return_value",
+        markdown=summary,
+        description="return value: summary of results",
+    )
     return summary
 
 
