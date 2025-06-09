@@ -5,7 +5,7 @@ from prefect.artifacts import create_markdown_artifact
 @task
 def get_customer_ids() -> list[str]:
     # Fetch customer IDs from a database or API
-    return [f"customer{n}" for n in random.choices(range(100), k=5)]
+    return [f"customer{n}" for n in random.choices(range(100), k=3)]
 
 @task
 def process_customer(customer_id: str) -> str:
@@ -26,12 +26,17 @@ def prefect_getting_started() -> list[str]:
     results = process_customer.map(customer_ids)
     summary = summarize_results(results)
 
-    create_markdown_artifact(
+    md_uuid = create_markdown_artifact(
         key="return-value", 
         markdown=summary,
         description="return value: summary of results",
     )
-    return summary
+    return_value = {
+        'summary': summary,
+        'customer_ids': customer_ids,
+        'md_uuid': md_uuid,
+    }
+    return return_value
 
 
 if __name__ == "__main__":
