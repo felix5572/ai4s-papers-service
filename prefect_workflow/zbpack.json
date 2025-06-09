@@ -1,6 +1,6 @@
 {
   "build_command": "pip install .",
-  "start_command": "prefect --version && prefect config set PREFECT_API_URL=${PREFECT_API_URL} && prefect config set PREFECT_API_AUTH_STRING=${PREFECT_API_AUTH_STRING} && python main.py",
+  "start_command": "bash start.sh",
   "install_command": "pip install .",
   "framework": "python",
   "watch": ["prefect_workflow/**", "main.py", "pyproject.toml"]
