@@ -21,12 +21,13 @@ def summarize_results(results: list[str]) -> str:
     # result_storage="s3-bucket/sealos-bja-prefect-storage-s3",
 )
 def prefect_getting_started(
-    s3_object_key: str = "test.txt",
-    s3_bucket_endpoint: str = "https://deepmodeling-docs-r2.deepmd.us",
+    s3_pdf_url: str = "https://deepmodeling-docs-r2.deepmd.us/deepmd-kit/dpgen.pdf",
+    # s3_object_key: str = "test.txt",
+    # s3_bucket_endpoint: str = "https://deepmodeling-docs-r2.deepmd.us",
 ) -> list[str]:
 
-    s3_object_url = f"{s3_bucket_endpoint}/{s3_object_key}"
-    print(f"s3_object_url: {s3_object_url}")
+    # s3_object_url = f"{s3_bucket_endpoint}/{s3_object_key}"
+    print(f"s3_pdf_url: {s3_pdf_url}")
 
     customer_ids = get_customer_ids()
     # Map the process_customer task across all customer IDs
@@ -35,14 +36,14 @@ def prefect_getting_started(
 
     md_uuid = create_markdown_artifact(
         key="return-value", 
-        markdown=summary + "\n" + s3_object_url,
+        markdown=summary + "\n" + s3_pdf_url,
         description="return value: summary of results",
     )
     return_value = {
-        's3_object_url': s3_object_url,
+        's3_pdf_url': s3_pdf_url,
         'customer_ids': customer_ids,
         'md_uuid': md_uuid,
-        'summary': summary,
+        # 'summary': summary,
     }
     return return_value
 
