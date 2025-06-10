@@ -76,7 +76,7 @@ class PaperAdmin(admin.ModelAdmin):
         return True  # TODO: Implement custom logic
     
     # Batch actions
-    actions = ['make_active']
+    actions = ['make_active', 'delete_selected_papers']
     actions_on_top = True  # Show actions at top
     actions_on_bottom = False  # Show actions at bottom
     actions_selection_counter = True  # Show selection counter
