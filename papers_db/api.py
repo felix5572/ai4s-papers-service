@@ -77,31 +77,35 @@ def list_papers(request):
 
 
 @api.post("/papers", response=PaperOut)
-def create_paper(request, paper: PaperIn):
-    """Create new paper - JSON metadata only"""
-    return Paper.objects.create(**paper.model_dump())  # type: ignore
-
-
-@api.post("/papers/upload", response=PaperOut)
-def create_paper_upload(request, 
-                       paper_data: Form[PaperFileUpload],
-                       pdf_file: Optional[UploadedFile] = File(None), # type: ignore
-                       markdown_file: Optional[UploadedFile] = File(None)): # type: ignore
-    """Create new paper - file upload method"""
+def create_paper(request):
+    """Create new paper - 智能处理JSON或multipart数据"""
     
-    data = paper_data.model_dump()
+    # 检查请求类型
+    if request.content_type.startswith('multipart/form-data'):
+        # Multipart请求 - 处理文件上传
+        form_data = request.POST.dict()
+        
+        # 获取上传的文件
+        pdf_file = request.FILES.get('pdf_file')
+        markdown_file = request.FILES.get('markdown_file')
+        
+        paper_data = form_data.copy()
+        
+        # 处理文件内容
+        if pdf_file:
+            paper_data['pdf_content'] = pdf_file.read()
+            paper_data['pdf_filename'] = pdf_file.name
+        
+        if markdown_file:
+            paper_data['markdown_content'] = markdown_file.read()
+            paper_data['markdown_filename'] = markdown_file.name
+            
+    else:
+        # JSON请求 - 纯元数据
+        paper_data = request.json
     
-    # Handle uploaded PDF file
-    if pdf_file:
-        data['pdf_filename'] = pdf_file.name
-        data['pdf_content'] = pdf_file.read()
-    
-    # Handle uploaded Markdown file
-    if markdown_file:
-        data['markdown_filename'] = markdown_file.name
-        data['markdown_content'] = markdown_file.read().decode('utf-8')
-    
-    return Paper.objects.create(**data)  # type: ignore
+    # 统一创建Paper对象
+    return Paper.objects.create(**paper_data)
 
 
 @api.post("/papers/upload-parse", response=PaperOut)
