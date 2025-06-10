@@ -20,7 +20,14 @@ def summarize_results(results: list[str]) -> str:
     persist_result=True,
     # result_storage="s3-bucket/sealos-bja-prefect-storage-s3",
 )
-def prefect_getting_started() -> list[str]:
+def prefect_getting_started(
+    s3_object_key: str,
+    s3_bucket_endpoint: str = "https://deepmodeling-docs-r2.deepmd.us",
+) -> list[str]:
+
+    s3_object_url = f"{s3_bucket_endpoint}/{s3_object_key}"
+    print(f"s3_object_url: {s3_object_url}")
+
     customer_ids = get_customer_ids()
     # Map the process_customer task across all customer IDs
     results = process_customer.map(customer_ids)
@@ -32,9 +39,10 @@ def prefect_getting_started() -> list[str]:
         description="return value: summary of results",
     )
     return_value = {
-        'summary': summary,
+        's3_object_url': s3_object_url,
         'customer_ids': customer_ids,
         'md_uuid': md_uuid,
+        'summary': summary,
     }
     return return_value
 

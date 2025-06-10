@@ -185,3 +185,9 @@ local_settings.py
 test_*.pdf
 test_*.md
 *.test
+
+# cloudflare
+.wrangler/
+
+# nodejs
+node_modules/
