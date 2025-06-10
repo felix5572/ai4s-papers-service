@@ -7,7 +7,7 @@ class PaperAdmin(admin.ModelAdmin):
     """Admin configuration for Paper model."""
     
     # List page display
-    list_display = ['id', 'title', 'year', 'primary_domain', 'journal', 'pdf_filename', 'markdown_filename', 'is_active', 'created_at']
+    list_display = ['id', 'title', 'year', 'primary_domain', 'journal', 'pdf_filename', 'pdf_filemd5', 'markdown_filename', 'markdown_filemd5', 'is_active', 'created_at', 'updated_at']
     list_display_links = ['title']  # Which fields are clickable
     list_editable = ['is_active']  # Quick edit fields
     list_filter = ['primary_domain', 'year', 'is_active']  # Right sidebar filters

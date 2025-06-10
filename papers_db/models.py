@@ -183,27 +183,23 @@ class Paper(models.Model):
             return f"{title_str[:97]}..."
         return title_str
 
-    # def _calculate_md5(self, content):
-    #     """计算二进制内容的MD5哈希值"""
-    #     if content is None:
-    #         return None
-        
-    #     # 统一按二进制内容处理
-    #     if isinstance(content, str):
-    #         content_bytes = content.encode('utf-8')
-    #     else:
-    #         content_bytes = content
-            
-    #     return hashlib.md5(content_bytes).hexdigest()
+    def _calculate_md5(self, content):
+        """计算二进制内容的MD5哈希值"""
+        md5sum = None
+        if content is None:
+            md5sum = None
+        else:
+            md5sum = hashlib.md5(content).hexdigest()
+        return md5sum
     
-    # def save(self, *args, **kwargs):
-    #     """重写save方法，自动计算MD5"""
-    #     # 自动计算PDF MD5
-    #     if self.pdf_content and not self.pdf_filemd5:
-    #         self.pdf_filemd5 = self._calculate_md5(self.pdf_content)
+    def save(self, *args, **kwargs):
+        """重写save方法，自动计算MD5"""
+        # 自动计算PDF MD5
+        if self.pdf_content:
+            self.pdf_filemd5 = self._calculate_md5(self.pdf_content)
         
-    #     # 自动计算Markdown MD5  
-    #     if self.markdown_content and not self.markdown_filemd5:
-    #         self.markdown_filemd5 = self._calculate_md5(self.markdown_content)
+        # 自动计算Markdown MD5  
+        if self.markdown_content:
+            self.markdown_filemd5 = self._calculate_md5(self.markdown_content)
             
-    #     super().save(*args, **kwargs)
+        super().save(*args, **kwargs)
