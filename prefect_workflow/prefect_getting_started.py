@@ -35,7 +35,7 @@ def prefect_getting_started(
 
     md_uuid = create_markdown_artifact(
         key="return-value", 
-        markdown=summary,
+        markdown=summary + "\n" + s3_object_url,
         description="return value: summary of results",
     )
     return_value = {
