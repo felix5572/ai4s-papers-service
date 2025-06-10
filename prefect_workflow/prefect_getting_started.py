@@ -21,7 +21,7 @@ def summarize_results(results: list[str]) -> str:
     # result_storage="s3-bucket/sealos-bja-prefect-storage-s3",
 )
 def prefect_getting_started(
-    s3_object_key: str,
+    s3_object_key: str = "test.txt",
     s3_bucket_endpoint: str = "https://deepmodeling-docs-r2.deepmd.us",
 ) -> list[str]:
 
