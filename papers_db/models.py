@@ -70,6 +70,20 @@ class Paper(models.Model):
         null=True,
         help_text="arXiv identifier"
     )
+
+    pdf_filename = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text="Original PDF filename"
+    )
+
+    pdf_filemd5 = models.CharField(
+        max_length=32,
+        blank=True,
+        null=True,
+        help_text="MD5 hash of the PDF file"
+    )
     
     # File storage - for PostgreSQL binary storage
     pdf_content = models.BinaryField(
@@ -78,11 +92,18 @@ class Paper(models.Model):
         help_text="PDF file binary content stored in PostgreSQL"
     )
     
-    pdf_filename = models.CharField(
+    markdown_filename = models.CharField(
         max_length=255,
         blank=True,
         null=True,
-        help_text="Original PDF filename"
+        help_text="Original Markdown filename"
+    )
+
+    markdown_filemd5 = models.CharField(
+        max_length=32,
+        blank=True,
+        null=True,
+        help_text="MD5 hash of the Markdown file"
     )
     
     markdown_content = models.TextField(
@@ -90,13 +111,7 @@ class Paper(models.Model):
         null=True,
         help_text="Markdown content of the paper"
     )
-    
-    markdown_filename = models.CharField(
-        max_length=255,
-        blank=True,
-        null=True,
-        help_text="Original Markdown filename"
-    )
+
     
     # Metadata and tracking
     created_at = models.DateTimeField(
