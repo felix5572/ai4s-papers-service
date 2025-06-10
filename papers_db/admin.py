@@ -34,7 +34,7 @@ class PaperAdmin(admin.ModelAdmin):
             'classes': ('wide',)  # CSS classes for styling
         }),
         ('Files & Links', {
-            'fields': ('pdf_content', 'pdf_filename', 'markdown_content', 'url', 'doi', 'arxiv_id')
+            'fields': ('pdf_filename', 'pdf_filemd5', 'markdown_filename', 'markdown_filemd5', 'url', 'doi', 'arxiv_id')
         }),
         ('Settings', {
             'fields': ('is_active',),
@@ -43,7 +43,7 @@ class PaperAdmin(admin.ModelAdmin):
     )
     
     # Field behavior
-    readonly_fields = ['created_at', 'updated_at']
+    readonly_fields = ['created_at', 'updated_at', 'pdf_filemd5', 'markdown_filemd5']
     prepopulated_fields = {}  # Auto-populate fields based on others
     autocomplete_fields = []  # Enable autocomplete for foreign keys
     raw_id_fields = []  # Use raw ID widget for foreign keys
