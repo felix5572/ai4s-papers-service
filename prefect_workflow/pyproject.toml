@@ -19,7 +19,8 @@ dependencies = [
     "google-generativeai",
     "google-ai-generativelanguage",
     "google-adk",
-    "requests"
+    "requests",
+    "modal"
 ]
 
 [project.scripts]
