@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "prefect-workflow"
-version = "0.1.0"
+version = "0.2.0"
 description = "Simple Prefect workflow for Zeabur deployment"
 authors = [
     { name = "felix5572", email = "felix5572@github.com" }
@@ -15,7 +15,10 @@ requires-python = ">=3.10"
 dependencies = [
     "prefect>=3.0.0",
     "prefect-aws>=0.4.0",
-    "python-dotenv>=1.0.0"
+    "python-dotenv>=1.0.0",
+    "google-generativeai",
+    "google-ai-generativelanguage",
+    "requests"
 ]
 
 [project.scripts]
