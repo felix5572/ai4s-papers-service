@@ -24,7 +24,7 @@ DJANGO_API_ENDPOINT = os.environ.get("DJANGO_API_ENDPOINT", "https://ai4s-papers
 FASTGPT_WEBURL = os.environ.get("FASTGPT_WEBURL", "https://zqibhdki.sealosbja.site")
 FASTGPT_DEVELOPER_API_KEY = os.environ.get("FASTGPT_DEVELOPER_API_KEY", "fastgpt-xxx")
 
-MODAL_MARKDOWN_METADATA_AGENT_URL = os.environ.get("MODAL_MARKDOWN_METADATA_AGENT_URL", "https://yfb222333--paper-metadata-agent-get-raw-llm-output.modal.run")
+MODAL_MARKDOWN_METADATA_AGENT_URL = os.environ.get("MODAL_MARKDOWN_METADATA_AGENT_URL", "https://yfb222333--paper-metadata-agent-analyze-paper-raw-llm-output.modal.run")
 DATASET_ID = "684897a43609eeebb2bc7391" # deepmd-papers-md in bja sealos fastgpt
 
 @task
@@ -96,18 +96,22 @@ def parse_pdf_content(
     return parse_result
 #%%
 def parse_json_text_to_json_obj(json_text: str) -> dict:
-    """public json parse logic - DRY principle"""
+    """public json parse logic"""
     # clean possible markdown code block tags
+
     if json_text.startswith('```json'):
         json_str = json_text.replace('```json', '').replace('```', '').strip()
-    
+    else:
+        json_str = json_text
+
+    print(f"json_str: {json_str=}")
     # analyze json text to json object, if failed, raise exception
     result_dict = json.loads(json_str)
     
     return result_dict
 
-@task(cache_policy=None)
-async def agent_generate_paper_metadata(
+@task(retries=2, retry_delay_seconds=10)
+def agent_generate_paper_metadata(
     markdown_file_path: str,
     modal_markdown_metadata_agent_url: str = MODAL_MARKDOWN_METADATA_AGENT_URL
 ) -> dict:
@@ -219,7 +223,7 @@ def upload_to_fastgpt_dataset(
     persist_result=True,
     # result_storage="s3-bucket/sealos-bja-prefect-storage-s3",
 )
-async def workflow_handle_pdf_to_db_and_fastgpt(
+def workflow_handle_pdf_to_db_and_fastgpt(
     s3_pdf_url: str = "https://deepmodeling-docs-r2.deepmd.us/test/test_dpgen.pdf",
     # s3_object_key: str = "test.txt",
     # s3_bucket_endpoint: str = "https://deepmodeling-docs-r2.deepmd.us",
@@ -240,7 +244,7 @@ async def workflow_handle_pdf_to_db_and_fastgpt(
 
     markdown_file_path = parse_result['markdown_file_path']
     
-    paper_metadata = await agent_generate_paper_metadata(markdown_file_path=markdown_file_path)
+    paper_metadata = agent_generate_paper_metadata(markdown_file_path=markdown_file_path)
 
     save_result = save_pdf_md_to_db(
         pdf_file_path=pdf_file_path,

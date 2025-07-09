@@ -47,10 +47,9 @@ class PaperMetadataSchema(BaseModel):
 
 md_paper_metadata_agent_instruction = \
 """\
-You are an academic paper metadata agent. When asked to analyze a file:
-1. First use the read_markdown_file tool to load the content
-2. Extract key bibliographic information and output in JSON format:
-
+You are an academic paper metadata agent. You will be given markdown content directly.
+Analyze the markdown content and extract key bibliographic information in JSON format:
+For information not found in the document, use null.
 {
   "title": "document title",
   "authors": "author names (comma-separated)",
@@ -63,7 +62,7 @@ You are an academic paper metadata agent. When asked to analyze a file:
   "arxiv_id": "arXiv ID if available"
 }
 
-For fields not found in the document, omit them from the JSON or use null. Output only valid JSON.
+Output only valid JSON.
 """
 
 md_paper_metadata_agent = LlmAgent(
@@ -71,7 +70,8 @@ md_paper_metadata_agent = LlmAgent(
     model=MODEL,
     description="Extract structured metadata from academic papers and research documents",
     instruction=md_paper_metadata_agent_instruction,
-    tools=[read_markdown_file]
+    output_schema=PaperMetadataSchema,
+    # tools=[read_markdown_file]
 )
 
 
@@ -79,7 +79,6 @@ md_paper_metadata_agent = LlmAgent(
 # Modal deployment code
 import modal
 import json
-import tempfile
 
 # Create Modal app
 app = modal.App("paper-metadata-agent")
@@ -92,11 +91,7 @@ image = modal.Image.debian_slim(python_version="3.11").pip_install([
     "pydantic",
 ])
 
-def create_temp_file_from_content(markdown_content: str) -> str:
-    """Create temporary file from markdown content"""
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.md', delete=False) as tmp_file:
-        tmp_file.write(markdown_content)
-        return tmp_file.name
+
 
 @app.function(
     image=image,
@@ -107,7 +102,7 @@ def create_temp_file_from_content(markdown_content: str) -> str:
 async def analyze_paper_raw_llm_output(request_data: dict):
     """
     HTTP endpoint to get raw LLM output (no parsing)
-    Expected input: {"markdown_content": "...", "file_path": "optional"}
+    Expected input: {"markdown_content": "..."}
     """
     from google.adk.runners import Runner
     from google.adk.sessions import InMemorySessionService
@@ -118,9 +113,6 @@ async def analyze_paper_raw_llm_output(request_data: dict):
     
     if not markdown_content:
         return {"success": False, "error": "No markdown content provided"}
-    
-    # Create temporary file
-    temp_file_path = create_temp_file_from_content(markdown_content)
     
     try:
         # Initialize agent
@@ -141,9 +133,16 @@ async def analyze_paper_raw_llm_output(request_data: dict):
         )
         
         # Run agent
+
+
+        # content = types.Content(
+        #     role='user',
+        #     parts=[types.Part(text=f"analyze {temp_file_path}")]
+        # )
+
         content = types.Content(
             role='user',
-            parts=[types.Part(text=f"analyze {temp_file_path}")]
+            parts=[types.Part(text=markdown_content )]
         )
         
         events = runner.run_async(
@@ -165,5 +164,4 @@ async def analyze_paper_raw_llm_output(request_data: dict):
         }
         
     finally:
-        # Clean up temp file
-        os.unlink(temp_file_path)
+        pass
