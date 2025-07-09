@@ -36,6 +36,10 @@ class PaperAdmin(admin.ModelAdmin):
         ('Files & Links', {
             'fields': ('pdf_filename', 'pdf_filemd5', 'markdown_filename', 'markdown_filemd5', 'url', 'doi', 'arxiv_id')
         }),
+        ('Markdown Content', {
+            'fields': ('markdown_download_link', 'markdown_content_preview'),
+            'classes': ('collapse',)  # Collapsible section
+        }),
         ('Settings', {
             'fields': ('is_active',),
             'classes': ('collapse',)  # Collapsible section
@@ -43,7 +47,7 @@ class PaperAdmin(admin.ModelAdmin):
     )
     
     # Field behavior
-    readonly_fields = ['created_at', 'updated_at', 'pdf_filemd5', 'markdown_filemd5']
+    readonly_fields = ['created_at', 'updated_at', 'pdf_filemd5', 'markdown_filemd5', 'markdown_content_preview', 'markdown_download_link']
     prepopulated_fields = {}  # Auto-populate fields based on others
     autocomplete_fields = []  # Enable autocomplete for foreign keys
     raw_id_fields = []  # Use raw ID widget for foreign keys
@@ -92,3 +96,34 @@ class PaperAdmin(admin.ModelAdmin):
         return obj.short_title
     short_title.short_description = "Title"  # type: ignore
     short_title.admin_order_field = 'title'  # type: ignore
+    
+    def markdown_content_preview(self, obj):
+        """Display markdown content in admin."""
+        from django.utils.html import format_html
+        
+        if obj.markdown_file:
+            try:
+                content = obj.markdown_file.read().decode('utf-8')
+                obj.markdown_file.seek(0)
+                return format_html('<pre>{}</pre>', content)
+            except:
+                return "Error reading markdown file"
+        return "No markdown file"
+    
+    markdown_content_preview.short_description = "Markdown Content"  # type: ignore
+    
+    def markdown_download_link(self, obj):
+        """Provide download link for markdown file."""
+        from django.utils.html import format_html
+        from django.urls import reverse
+        
+        if obj.markdown_file:
+            return format_html(
+                '<a href="{}" download="{}" style="background: #007cba; color: white; padding: 5px 10px; text-decoration: none; border-radius: 3px;">Download Markdown</a>',
+                obj.markdown_file.url,
+                obj.markdown_filename or 'markdown.md'
+            )
+        else:
+            return format_html('<span style="color: gray;">No markdown file</span>')
+    
+    markdown_download_link.short_description = "Download"  # type: ignore
