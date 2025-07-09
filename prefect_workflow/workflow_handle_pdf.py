@@ -24,6 +24,7 @@ DJANGO_API_ENDPOINT = os.environ.get("DJANGO_API_ENDPOINT", "https://ai4s-papers
 FASTGPT_WEBURL = os.environ.get("FASTGPT_WEBURL", "https://zqibhdki.sealosbja.site")
 FASTGPT_DEVELOPER_API_KEY = os.environ.get("FASTGPT_DEVELOPER_API_KEY", "fastgpt-xxx")
 
+MODAL_MARKDOWN_METADATA_AGENT_URL = os.environ.get("MODAL_MARKDOWN_METADATA_AGENT_URL", "https://yfb222333--paper-metadata-agent-analyze-paper.modal.run")
 DATASET_ID = "684897a43609eeebb2bc7391" # deepmd-papers-md in bja sealos fastgpt
 
 @task
@@ -106,36 +107,30 @@ def parse_json_text_to_json_obj(json_text: str) -> dict:
     return result_dict
 
 @task(cache_policy=None)
-async def agent_generate_paper_metadata(markdown_file_path: str) -> dict:
-    APP_NAME = "md_paper_metadata_agent_app"
-    USER_ID = "prefect_workflow_user"
-    SESSION_ID = "1234"
-
-
+async def agent_generate_paper_metadata(
+    markdown_file_path: str,
+    modal_markdown_metadata_agent_url: str = MODAL_MARKDOWN_METADATA_AGENT_URL
+) -> dict:
+    """
+    Generate paper metadata using Modal service
+    """
+    # Read markdown content
+    with open(markdown_file_path, 'r', encoding='utf-8') as f:
+        markdown_content = f.read()
     
-    # 创建 session 和 runner
-    session_service = InMemorySessionService()
-    session = await session_service.create_session(app_name=APP_NAME, user_id=USER_ID, session_id=SESSION_ID)
-    runner = Runner(agent=md_paper_metadata_agent, app_name=APP_NAME, session_service=session_service)
+    # Call Modal service
+    response = requests.post(modal_markdown_metadata_agent_url, json={
+        "markdown_content": markdown_content,
+        # "file_path": markdown_file_path
+    })
+    response.raise_for_status()
     
-    # 调用agent
-    content = types.Content(role='user',
-        parts=[types.Part(text=f"analyze {markdown_file_path}")])
-
-    events = runner.run_async(user_id=USER_ID,
-                              session_id=SESSION_ID,
-                              new_message=content)
-    
-    # get final response
-    paper_metadata_json_text = ''
-    async for event in events:
-        if event.is_final_response():
-            paper_metadata_json_text = event.content.parts[0].text
-            break
-    
-    paper_parsed_metadata_dict = parse_json_text_to_json_obj(paper_metadata_json_text)
-    
-    return paper_parsed_metadata_dict
+    result = response.json()
+    if result.get("success"):
+        paper_metadata = result["metadata"]
+    else:
+        raise Exception(f"Modal agent error: {result=}")
+    return paper_metadata
 #%%
 @task
 def save_pdf_md_to_db(

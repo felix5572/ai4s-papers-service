@@ -72,4 +72,102 @@ md_paper_metadata_agent = LlmAgent(
     description="Extract structured metadata from academic papers and research documents",
     instruction=md_paper_metadata_agent_instruction,
     tools=[read_markdown_file]
-) 
+)
+
+
+#%% 
+# Modal deployment code
+import modal
+import json
+import tempfile
+
+# Create Modal app
+app = modal.App("paper-metadata-agent")
+
+# Define the image with required dependencies
+image = modal.Image.debian_slim(python_version="3.11").pip_install([
+    "google-generativeai",
+    "google-ai-generativelanguage", 
+    "google-adk",
+    "pydantic",
+])
+
+@app.function(
+    image=image,
+    secrets=[modal.Secret.from_name("google-api-key")],
+    timeout=300,
+)
+@modal.fastapi_endpoint(method="POST")
+async def analyze_paper(request_data: dict):
+    """
+    HTTP endpoint to analyze paper metadata
+    Expected input: {"markdown_content": "...", "file_path": "optional"}
+    """
+    from google.adk.runners import Runner
+    from google.adk.sessions import InMemorySessionService
+    from google.genai import types
+    
+    # Get input data
+    markdown_content = request_data.get("markdown_content", "")
+    
+    if not markdown_content:
+        return {"success": False, "error": "No markdown content provided"}
+    
+    # Create temporary file
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.md', delete=False) as tmp_file:
+        tmp_file.write(markdown_content)
+        temp_file_path = tmp_file.name
+    
+    try:
+        # Initialize agent
+        APP_NAME = "md_paper_metadata_agent_app"
+        USER_ID = "modal_service_user"
+        SESSION_ID = "modal_session"
+        
+        session_service = InMemorySessionService()
+        session = await session_service.create_session(
+            app_name=APP_NAME, 
+            user_id=USER_ID, 
+            session_id=SESSION_ID
+        )
+        runner = Runner(
+            agent=md_paper_metadata_agent, 
+            app_name=APP_NAME, 
+            session_service=session_service
+        )
+        
+        # Run agent
+        content = types.Content(
+            role='user',
+            parts=[types.Part(text=f"analyze {temp_file_path}")]
+        )
+        
+        events = runner.run_async(
+            user_id=USER_ID,
+            session_id=SESSION_ID,
+            new_message=content
+        )
+        
+        # Get response
+        paper_metadata_json_text = ''
+        async for event in events:
+            if event.is_final_response():
+                paper_metadata_json_text = event.content.parts[0].text
+                break
+        
+        # Parse JSON response
+        if paper_metadata_json_text.startswith('```json'):
+            json_str = paper_metadata_json_text.replace('```json', '').replace('```', '').strip()
+        else:
+            json_str = paper_metadata_json_text
+        
+        paper_metadata = json.loads(json_str)
+        
+        return {
+            "success": True,
+            "metadata": paper_metadata
+        }
+        
+    finally:
+        # Clean up temp file
+        os.unlink(temp_file_path)
