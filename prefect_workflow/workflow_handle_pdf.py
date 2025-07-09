@@ -169,7 +169,7 @@ def save_pdf_md_to_db(
     return response.json()
 #%%
 
-@task
+@task(retries=3, retry_delay_seconds=600)
 def upload_to_fastgpt_dataset(
     file_path: str,
     dataset_id: str = DATASET_ID, 
