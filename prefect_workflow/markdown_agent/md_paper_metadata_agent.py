@@ -71,6 +71,8 @@ md_paper_metadata_agent = LlmAgent(
     description="Extract structured metadata from academic papers and research documents",
     instruction=md_paper_metadata_agent_instruction,
     output_schema=PaperMetadataSchema,
+    disallow_transfer_to_parent=True,
+    disallow_transfer_to_peers=True,
     # tools=[read_markdown_file]
 )
 
