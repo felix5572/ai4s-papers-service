@@ -22,7 +22,8 @@ def main():
 
     # serve(prefect_getting_started_deploy, hello_world_deploy)
     workflow_handle_pdf_to_db_and_fastgpt_deploy = workflow_handle_pdf_to_db_and_fastgpt.to_deployment(
-        name="zeabur-deploy-workflow-handle-pdf-to-db-and-fastgpt"
+        name="zeabur-deploy-workflow-handle-pdf-to-db-and-fastgpt",
+        concurrency_limit=5
         )
     hello_world_deploy = hello_world.to_deployment(name="zeabur-deploy-hello-world")
     serve(workflow_handle_pdf_to_db_and_fastgpt_deploy, hello_world_deploy)

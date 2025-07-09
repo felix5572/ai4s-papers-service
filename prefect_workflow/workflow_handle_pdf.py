@@ -222,7 +222,6 @@ def upload_to_fastgpt_dataset(
     flow_run_name="process-{s3_pdf_url}",
     persist_result=True,
     # result_storage="s3-bucket/sealos-bja-prefect-storage-s3",
-    concurrency_limit=5,  # 最多同时运行5个此工作流
 )
 def workflow_handle_pdf_to_db_and_fastgpt(
     s3_pdf_url: str = "https://deepmodeling-docs-r2.deepmd.us/test/test_dpgen.pdf",
