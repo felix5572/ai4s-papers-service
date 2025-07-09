@@ -24,7 +24,7 @@ DJANGO_API_ENDPOINT = os.environ.get("DJANGO_API_ENDPOINT", "https://ai4s-papers
 FASTGPT_WEBURL = os.environ.get("FASTGPT_WEBURL", "https://zqibhdki.sealosbja.site")
 FASTGPT_DEVELOPER_API_KEY = os.environ.get("FASTGPT_DEVELOPER_API_KEY", "fastgpt-xxx")
 
-MODAL_MARKDOWN_METADATA_AGENT_URL = os.environ.get("MODAL_MARKDOWN_METADATA_AGENT_URL", "https://yfb222333--paper-metadata-agent-analyze-paper.modal.run")
+MODAL_MARKDOWN_METADATA_AGENT_URL = os.environ.get("MODAL_MARKDOWN_METADATA_AGENT_URL", "https://yfb222333--paper-metadata-agent-get-raw-llm-output.modal.run")
 DATASET_ID = "684897a43609eeebb2bc7391" # deepmd-papers-md in bja sealos fastgpt
 
 @task
@@ -113,23 +113,31 @@ async def agent_generate_paper_metadata(
 ) -> dict:
     """
     Generate paper metadata using Modal service
+    Text parsing happens in Prefect for better monitoring
     """
     # Read markdown content
     with open(markdown_file_path, 'r', encoding='utf-8') as f:
         markdown_content = f.read()
     
-    # Call Modal service
+    # Call Modal service - get raw LLM output only
     response = requests.post(modal_markdown_metadata_agent_url, json={
         "markdown_content": markdown_content,
-        # "file_path": markdown_file_path
     })
     response.raise_for_status()
     
     result = response.json()
-    if result.get("success"):
-        paper_metadata = result["metadata"]
-    else:
+    
+    if not result.get("success"):
         raise Exception(f"Modal agent error: {result=}")
+    
+    # Get raw output from Modal
+    raw_output = result["raw_output"]
+    print(f"Raw LLM output: {raw_output=}...")  # Log for debugging
+    
+    # Parse output in Prefect (for monitoring)
+    paper_metadata = parse_json_text_to_json_obj(raw_output)
+    print(f"paper_metadata: {paper_metadata=}")
+    
     return paper_metadata
 #%%
 @task

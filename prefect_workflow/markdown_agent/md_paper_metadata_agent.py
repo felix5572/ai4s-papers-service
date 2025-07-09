@@ -92,15 +92,21 @@ image = modal.Image.debian_slim(python_version="3.11").pip_install([
     "pydantic",
 ])
 
+def create_temp_file_from_content(markdown_content: str) -> str:
+    """Create temporary file from markdown content"""
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.md', delete=False) as tmp_file:
+        tmp_file.write(markdown_content)
+        return tmp_file.name
+
 @app.function(
     image=image,
     secrets=[modal.Secret.from_name("google-api-key")],
     timeout=300,
 )
 @modal.fastapi_endpoint(method="POST")
-async def analyze_paper(request_data: dict):
+async def analyze_paper_raw_llm_output(request_data: dict):
     """
-    HTTP endpoint to analyze paper metadata
+    HTTP endpoint to get raw LLM output (no parsing)
     Expected input: {"markdown_content": "...", "file_path": "optional"}
     """
     from google.adk.runners import Runner
@@ -114,9 +120,7 @@ async def analyze_paper(request_data: dict):
         return {"success": False, "error": "No markdown content provided"}
     
     # Create temporary file
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.md', delete=False) as tmp_file:
-        tmp_file.write(markdown_content)
-        temp_file_path = tmp_file.name
+    temp_file_path = create_temp_file_from_content(markdown_content)
     
     try:
         # Initialize agent
@@ -149,23 +153,15 @@ async def analyze_paper(request_data: dict):
         )
         
         # Get response
-        paper_metadata_json_text = ''
+        raw_output = ''
         async for event in events:
-            if event.is_final_response():
-                paper_metadata_json_text = event.content.parts[0].text
+            if event.is_final_response() and event.content and event.content.parts:
+                raw_output = event.content.parts[0].text
                 break
-        
-        # Parse JSON response
-        if paper_metadata_json_text.startswith('```json'):
-            json_str = paper_metadata_json_text.replace('```json', '').replace('```', '').strip()
-        else:
-            json_str = paper_metadata_json_text
-        
-        paper_metadata = json.loads(json_str)
         
         return {
             "success": True,
-            "metadata": paper_metadata
+            "raw_output": raw_output
         }
         
     finally:
