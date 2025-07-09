@@ -210,7 +210,9 @@ def upload_to_fastgpt_dataset(
 #%%
 
 
+
 @flow(
+    flow_run_name="process-{s3_pdf_url}",
     persist_result=True,
     # result_storage="s3-bucket/sealos-bja-prefect-storage-s3",
 )
