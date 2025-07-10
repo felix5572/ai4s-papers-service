@@ -37,6 +37,14 @@ image = (
     ])
 )
 
+# 在文件顶部添加模板常量
+MARKDOWN_FOOTER_TEMPLATE = """
+
+---
+
+*Processing info: {filename} | {pdf_size:,} bytes | {processing_time:.1f}s | {service_name} | {image_count} images*
+"""
+
 # Docling parsing function
 @app.function(
    image=image,
@@ -93,12 +101,13 @@ def parse_pdf_with_docling(pdf_url: Optional[str] = None, pdf_content: Optional[
            markdown_content = result.document.export_to_markdown()
            page_count = len(result.document.pages) if hasattr(result.document, 'pages') else 1
            
-           final_markdown = f"""{markdown_content}
-
----
-
-*解析信息: {filename} | {pdf_size:,}字节 | {page_count}页 | {processing_time:.1f}秒 | Docling GPU*
-"""
+           final_markdown = markdown_content + MARKDOWN_FOOTER_TEMPLATE.format(
+               filename=filename,
+               pdf_size=pdf_size,
+               processing_time=processing_time,
+               service_name="Docling GPU",
+               image_count=0  # Docling没有单独的图片计数
+           )
            
            return {
                "success": True,
@@ -160,37 +169,54 @@ def parse_pdf_with_marker(pdf_url: Optional[str] = None, pdf_content: Optional[b
            pdf_path = tmp_file.name
        
        try:
-           print("创建Marker转换器...")
-           converter = PdfConverter(
-               artifact_dict=create_model_dict(),
-           )
+            print("创建Marker转换器...")
+            converter = PdfConverter(
+                artifact_dict=create_model_dict(),
+            )
+            
+            start_time = time.time()
+            print(f"开始转换PDF...{filename=}")
+            rendered = converter(pdf_path)
+            
+            print("提取文本和图像...")
+            text, metadata, images = text_from_rendered(rendered)
+            
+            processing_time = time.time() - start_time
+            print(f"parser success: {processing_time=} {metadata=}")
+            
+            # 在最后生成markdown的地方
+            final_markdown = text + MARKDOWN_FOOTER_TEMPLATE.format(
+                filename=filename,
+                pdf_size=pdf_size,
+                processing_time=processing_time,
+                service_name="Marker GPU",
+                image_count=len(images) if images else 0
+            )
            
-           start_time = time.time()
-           print("开始转换PDF...")
-           rendered = converter(pdf_path)
-           
-           print("提取文本和图像...")
-           text, _, images = text_from_rendered(rendered)
-           
-           processing_time = time.time() - start_time
-           
-           final_markdown = f"""{text}
-
----
-
-*解析信息: {filename} | {pdf_size:,}字节 | {processing_time:.1f}秒 | Marker GPU | {len(images) if images else 0}图片*
-"""
-           
-           return {
+            response = {
                "success": True,
+               "message": "Success Parse with Marker GPU",
                "markdown": final_markdown,
+            #    "page": 1,
                "metadata": {
                    "service": "marker-gpu",
                    "file_size": pdf_size,
                    "processing_time": processing_time,
                    "image_count": len(images) if images else 0
                }
-           }
+            }
+
+            # response = {
+            #     "success": True,
+            #     "message": "Success Parse with Marker GPU",
+            #     "data": {
+            #         "markdown": final_markdown,
+            #         "page": 1,
+            #         "duration": processing_time
+            #     }
+            # }
+
+            return response
            
        finally:
            if os.path.exists(pdf_path):
