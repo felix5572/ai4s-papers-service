@@ -65,7 +65,8 @@ def list_files(request, payload: FileListRequest):
         files.append({
             "id": f"paper_{paper.id}",
             "parentId": payload.parentId,
-            "name": f"{paper.year} {paper.title}",
+            # "name": f"{paper.year} {paper.title}",
+            "name": f"Paper {paper.id} {paper.pdf_filename} {paper.title}",
             "type": "file",
             "updateTime": datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
             "createTime": datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%fZ')
@@ -87,7 +88,10 @@ def get_file_content(request, id: str):
     paper = Paper.objects.get(id=paper_id)
     
     # Priority: markdown_content > abstract > PDF preview
-    content = paper.markdown_content or 'Abstract ' + paper.abstract or None
+    # content = paper.markdown_content or 'Abstract ' + paper.abstract or None
+    # content = paper.markdown_content or None
+    content = paper.markdown_content.decode('utf-8') if paper.markdown_content else None
+
     preview_url = f"/api/file/pdf/{paper.id}" if paper.pdf_content else None
     
     return {
