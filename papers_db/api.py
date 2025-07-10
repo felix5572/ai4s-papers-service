@@ -6,6 +6,8 @@ from .schemas import PaperOut, PaperIn, PaperFileUpload
 import httpx
 from django.conf import settings
 from asgiref.sync import sync_to_async
+import hashlib
+from django.db import transaction
 
 
 # Create API instance
@@ -69,14 +71,43 @@ async def parse_pdf_with_modal_async(pdf_content: bytes, filename: str) -> str:
         print(f'=== ERROR: Traceback ===: {traceback.format_exc()}')
         return ''
 
+def calculate_md5(content: bytes) -> str:
+    """Calculate MD5 hash of binary content"""
+    return hashlib.md5(content).hexdigest()
+
+def deactivate_duplicate_papers(pdf_filemd5: str) -> int:
+    """
+    Deactivate papers with the same PDF MD5 hash
+    Returns the number of deactivated papers
+    """
+    if not pdf_filemd5:
+        return 0
+    
+    # Find papers with same PDF MD5 that are currently active
+    duplicate_papers = Paper.objects.filter(
+        pdf_filemd5=pdf_filemd5,
+        is_active=True
+    )
+    
+    # Count duplicates before deactivating
+    count = duplicate_papers.count()
+    
+    # Deactivate all duplicates
+    if count > 0:
+        duplicate_papers.update(is_active=False)
+        print(f"=== DEDUP: Deactivated {count} duplicate papers with pdf_filemd5={pdf_filemd5} ===")
+    
+    return count
+
 
 @api.get("/papers", response=list[PaperOut])
 def list_papers(request):
-    """Get all papers"""
-    return Paper.objects.all()  # type: ignore
+    """Get all papers - only active ones"""
+    return Paper.objects.filter(is_active=True)  # type: ignore
 
 
 @api.post("/papers", response=PaperOut)
+@transaction.atomic
 def create_paper(request):
     """Create new paper - 智能处理JSON或multipart数据"""
     
@@ -93,12 +124,23 @@ def create_paper(request):
         
         # 处理文件内容
         if pdf_file:
-            paper_data['pdf_content'] = pdf_file.read()
+            pdf_content = pdf_file.read()
+            paper_data['pdf_content'] = pdf_content
             paper_data['pdf_filename'] = pdf_file.name
+            
+            # Calculate PDF MD5 and handle deduplication
+            pdf_filemd5 = calculate_md5(pdf_content)
+            # paper_data['pdf_filemd5'] = pdf_filemd5
+            deactivate_duplicate_papers(pdf_filemd5)
         
         if markdown_file:
-            paper_data['markdown_content'] = markdown_file.read()
+            markdown_content = markdown_file.read()
+            paper_data['markdown_content'] = markdown_content
             paper_data['markdown_filename'] = markdown_file.name
+            
+            # Calculate markdown MD5
+            # markdown_filemd5 = calculate_md5(markdown_content)
+            # paper_data['markdown_filemd5'] = markdown_filemd5
             
     else:
         # JSON请求 - 纯元数据
@@ -108,46 +150,46 @@ def create_paper(request):
     return Paper.objects.create(**paper_data)
 
 
-@api.post("/papers/upload-parse", response=PaperOut)
-async def create_paper_upload_parse(request, 
-                                   paper_data: Form[PaperFileUpload],
-                                   pdf_file: UploadedFile = File(...)): # type: ignore
-    """Create new paper - PDF upload with async parsing to Markdown"""
-    print('=== DEBUG: PDF upload and parse API called ===')
+# @api.post("/papers/upload-parse", response=PaperOut)
+# async def create_paper_upload_parse(request, 
+#                                    paper_data: Form[PaperFileUpload],
+#                                    pdf_file: UploadedFile = File(...)): # type: ignore
+#     """Create new paper - PDF upload with async parsing to Markdown"""
+#     print('=== DEBUG: PDF upload and parse API called ===')
     
-    # Validate file type
-    if not pdf_file.name.lower().endswith('.pdf'):
-        raise ValueError("Only PDF files are accepted")
+#     # Validate file type
+#     if not pdf_file.name.lower().endswith('.pdf'):
+#         raise ValueError("Only PDF files are accepted")
     
-    try:
-        # Read PDF content
-        pdf_content = pdf_file.read()
-        print(f'=== DEBUG: PDF file size ===: {len(pdf_content)} bytes')
+#     try:
+#         # Read PDF content
+#         pdf_content = pdf_file.read()
+#         print(f'=== DEBUG: PDF file size ===: {len(pdf_content)} bytes')
         
-        # Prepare data
-        data = paper_data.model_dump()
-        data['pdf_filename'] = pdf_file.name
-        data['pdf_content'] = pdf_content
-        data['markdown_content'] = None  # Will be updated later
+#         # Prepare data
+#         data = paper_data.model_dump()
+#         data['pdf_filename'] = pdf_file.name
+#         data['pdf_content'] = pdf_content
+#         data['markdown_content'] = None  # Will be updated later
         
-        # Save Paper record first
-        paper = await sync_to_async(Paper.objects.create)(**data)
-        print(f'=== DEBUG: Paper saved successfully ===: Paper ID {paper.id}')
+#         # Create paper with deduplication
+#         paper = await create_paper_with_dedup()
+#         print(f'=== DEBUG: Paper saved successfully ===: Paper ID {paper.id}')
         
-        # Parse PDF asynchronously
-        print('=== DEBUG: Starting async PDF parsing ===')
-        markdown_content = await parse_pdf_with_modal_async(pdf_content, pdf_file.name)
+#         # Parse PDF asynchronously
+#         print('=== DEBUG: Starting async PDF parsing ===')
+#         markdown_content = await parse_pdf_with_modal_async(pdf_content, pdf_file.name)
         
-        # Update markdown content
-        if markdown_content:
-            paper.markdown_content = markdown_content
-            await sync_to_async(paper.save)(update_fields=['markdown_content'])
-            print(f'=== DEBUG: Markdown content updated ===: {len(markdown_content)} characters')
-        else:
-            print('=== WARNING: PDF parsing failed, but PDF saved ===')
+#         # Update markdown content
+#         if markdown_content:
+#             paper.markdown_content = markdown_content
+#             await sync_to_async(paper.save)(update_fields=['markdown_content'])
+#             print(f'=== DEBUG: Markdown content updated ===: {len(markdown_content)} characters')
+#         else:
+#             print('=== WARNING: PDF parsing failed, but PDF saved ===')
         
-        return paper  # type: ignore
+#         return paper  # type: ignore
         
-    except Exception as e:
-        print(f'=== ERROR: PDF processing exception ===: {str(e)}')
-        raise e
+#     except Exception as e:
+#         print(f'=== ERROR: PDF processing exception ===: {str(e)}')
+#         raise e

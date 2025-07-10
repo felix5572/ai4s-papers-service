@@ -29,7 +29,7 @@ def list_files(request, payload: FileListRequest):
     if not payload.parentId or payload.parentId in ["", "/"]:
         folders = []
         for domain in PRIMARY_DOMAINS_LIST:
-            count = Paper.objects.filter(primary_domain=domain).count()
+            # count = Paper.objects.filter(primary_domain=domain, is_active=True).count()
             folders.append({
                 "id": domain + '/',
                 "parentId": None,
@@ -46,8 +46,8 @@ def list_files(request, payload: FileListRequest):
             "data": folders  # Remove the "files" wrapper
         }
     
-    # Return papers in domain
-    query = Paper.objects.filter(primary_domain=payload.parentId.rstrip('/'))
+    # Return papers in domain - only active ones
+    query = Paper.objects.filter(primary_domain=payload.parentId.rstrip('/'), is_active=True)
     
     # Add search filter
     search_key = payload.searchKey or ""

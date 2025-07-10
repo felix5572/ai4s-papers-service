@@ -153,6 +153,9 @@ class Paper(models.Model):
             models.Index(fields=['doi']),
             models.Index(fields=['primary_domain']),
             models.Index(fields=['created_at']),
+            models.Index(fields=['pdf_filemd5']),
+            models.Index(fields=['is_active']),
+            models.Index(fields=['pdf_filemd5', 'is_active']),  # For deduplication queries
         ]
     
     def __str__(self):
