@@ -251,21 +251,18 @@ def workflow_handle_pdf_to_db_and_fastgpt(
         markdown_file_path=markdown_file_path,
         paper_metadata=paper_metadata)
 
-    upload_result = upload_to_fastgpt_dataset(
-        file_path=markdown_file_path,
-    )
+    # upload_result = upload_to_fastgpt_dataset(
+    #     file_path=markdown_file_path,
+    # )
 
-    # customer_ids = get_customer_ids()
-    # Map the process_customer task across all customer IDs
-    # results = process_customer.map(customer_ids)
-    # summary = summarize_results(results)
+
 
     print(f"save_result: {save_result=}")
-    print(f"upload_result: {upload_result=}")
+    # print(f"upload_result: {upload_result=}")
 
     workflow_result = {
         "save_result": save_result,
-        "upload_result": upload_result
+        "upload_result": None
     }
     # summary = f"Processed PDF: {s3_pdf_url}"
 
