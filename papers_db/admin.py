@@ -20,8 +20,8 @@ class PaperAdmin(admin.ModelAdmin):
     search_help_text = "Search by title, authors, or DOI"
     
     # Ordering and sorting
-    ordering = ['-year', 'title']
-    sortable_by = ['title', 'year', 'created_at']  # Which columns are sortable
+    ordering = ['id', '-year', 'title']
+    sortable_by = ['id', 'title', 'year', 'created_at', 'pdf_filename', 'pdf_filemd5']  # Which columns are sortable
     
     # Form configuration
     fields = None  # Use fieldsets instead

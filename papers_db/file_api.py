@@ -90,7 +90,7 @@ def get_file_content(request, id: str):
     # Priority: markdown_content > abstract > PDF preview
     # content = paper.markdown_content or 'Abstract ' + paper.abstract or None
     # content = paper.markdown_content or None
-    content = paper.markdown_content.decode('utf-8') if paper.markdown_content else None
+    content = bytes(paper.markdown_content).decode('utf-8') if paper.markdown_content else None
 
     preview_url = f"/api/file/pdf/{paper.id}" if paper.pdf_content else None
     
