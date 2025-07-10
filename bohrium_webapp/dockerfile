@@ -1,0 +1,22 @@
+FROM docker.m.daocloud.io/library/python:3.9
+
+# 创建app目录
+RUN mkdir -p /app
+
+# 创建重定向HTML页面
+RUN echo '<!DOCTYPE html>\
+<html>\
+<head>\
+    <meta http-equiv="refresh" content="0;url=https://zqibhdki.sealosbja.site/chat/share?shareId=3qi9dxs7pxpw60yri6861mva">\
+    <script>window.location.href="https://zqibhdki.sealosbja.site/chat/share?shareId=3qi9dxs7pxpw60yri6861mva"</script>\
+    <title>Redirecting...</title>\
+</head>\
+<body>\
+    <p>Redirecting to FastGPT...</p>\
+</body>\
+</html>' > /app/index.html
+
+EXPOSE 80
+
+# 明确指定在/app目录启动HTTP服务器
+CMD ["python3", "-m", "http.server", "80", "--directory", "/app"]
