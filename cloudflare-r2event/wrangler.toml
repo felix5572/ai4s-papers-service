@@ -1,0 +1,25 @@
+name = "deepmodeling-docs-webhook-forwarder"
+main = "src/index.js"
+compatibility_date = "2025-06-09"
+
+[[queues.consumers]]
+queue = "deepmodeling-docs-event-queue"
+max_batch_size = 10
+max_batch_timeout = 30
+
+[vars]
+# WEBHOOK_URL = "https://webhook.site/df038c09-464d-4eb7-a5c6-8ca6cb7cd6cc"
+R2_PUBLIC_URL = "https://deepmodeling-docs-r2.deepmd.us"
+# PREFECT_FLOW_DEPLOYMENT_ID = "dc9fc7ee-467b-4944-8394-09c3b1ae3bb9"
+PREFECT_FLOW_NAME = "workflow-handle-pdf-to-db-and-fastgpt"
+PREFECT_DEPLOYMENT_NAME = "zeabur-deploy-workflow-handle-pdf-to-db-and-fastgpt"
+
+PREFECT_API_URL = "https://yusvyffgaqjc.sealosbja.site/api"
+
+
+[observability.logs]
+enabled = true
+
+
+# [secrets]
+# PREFECT_API_AUTH_STRING = "myusername:mypassword" 
