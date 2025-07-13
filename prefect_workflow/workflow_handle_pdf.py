@@ -26,7 +26,7 @@ FASTGPT_WEBURL = os.environ.get("FASTGPT_WEBURL", "https://zqibhdki.sealosbja.si
 FASTGPT_DEVELOPER_API_KEY = os.environ.get("FASTGPT_DEVELOPER_API_KEY", "fastgpt-xxx")
 
 MODAL_MARKDOWN_METADATA_AGENT_URL = os.environ.get("MODAL_MARKDOWN_METADATA_AGENT_URL", "https://yfb222333--paper-metadata-agent-analyze-paper-raw-llm-output.modal.run")
-DATASET_ID = "684897a43609eeebb2bc7391" # deepmd-papers-md in bja sealos fastgpt
+DATASET_ID = "6873ef82deecd959acb461fb" # deepmodeling-general-db in bja sealos fastgpt
 
 @task
 def start_process_webhook_request(webhook_request: dict) -> dict:
@@ -290,9 +290,9 @@ def workflow_handle_pdf_to_db_and_fastgpt(
         primary_domain=primary_domain,
         paper_metadata=paper_metadata)
 
-    # upload_result = upload_to_fastgpt_dataset(
-    #     file_path=markdown_file_path,
-    # )
+    upload_result = upload_to_fastgpt_dataset(
+        file_path=markdown_file_path,
+    )
 
 
 
@@ -301,7 +301,7 @@ def workflow_handle_pdf_to_db_and_fastgpt(
 
     workflow_result = {
         "save_result": save_result,
-        "upload_result": None
+        "upload_result": upload_result
     }
     # summary = f"Processed PDF: {s3_pdf_url}"
 
