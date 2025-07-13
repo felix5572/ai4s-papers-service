@@ -7,7 +7,8 @@ import os
 from pathlib import Path
 from prefect import flow, task
 from prefect.artifacts import create_markdown_artifact
-
+from pathlib import PurePosixPath
+from urllib.parse import urlparse
 
 
 from markdown_agent.md_paper_metadata_agent import md_paper_metadata_agent, PaperMetadataSchema
@@ -200,6 +201,39 @@ def upload_to_fastgpt_dataset(
     print(f"upload_to_fastgpt_dataset result: {upload_result=}")
     return upload_result
 
+
+@task
+def get_primary_domain_from_pdf_url(s3_pdf_url: str) -> str:
+    """
+    Get primary domain from PDF URL
+    """
+    # "https://deepmodeling-docs-r2.deepmd.us/test/test_dpgen.pdf"
+
+    # primary_dir =  urlparse(s3_pdf_url).path.strip('/').split('/')[0]
+    parts = PurePosixPath(urlparse(s3_pdf_url).path).parts
+    if len(parts) <= 1:  #  '/'  only root directory
+        first_dir = "/"
+    elif len(parts) == 2 and not urlparse(s3_pdf_url).path.endswith('/'):
+        # root directory file: /file.pdf
+        first_dir = "/"  
+    else:
+        # real directory: /test/  or /test/file.pdf
+        first_dir = parts[1] + "/"
+
+    map_primary_dir_to_domain = {
+        "deepmd/": "deepmd",
+        "deepmd-kit/": "deepmd",
+        "abacus/": "abacus",
+        "unimol/": "unimol",
+        "ai4s/": "ai4s",
+        "test/": "test",
+        "/": "unclassified"
+    }
+    primary_domain = map_primary_dir_to_domain.get(first_dir, "unknown")
+    print(f"primary_domain: {primary_domain=} {first_dir=}")
+
+    return primary_domain
+
 # @task
 # def end_
 
@@ -233,6 +267,8 @@ def workflow_handle_pdf_to_db_and_fastgpt(
     print(f"s3_pdf_url: {s3_pdf_url}")
 
     download_result = download_pdf_from_s3(s3_pdf_url)
+    primary_domain = get_primary_domain_from_pdf_url(s3_pdf_url)
+    
 
     temp_workdir = download_result['temp_workdir']
     pdf_file_path = download_result['pdf_file_path']
@@ -246,9 +282,12 @@ def workflow_handle_pdf_to_db_and_fastgpt(
     
     paper_metadata = agent_generate_paper_metadata(markdown_file_path=markdown_file_path)
 
+    # print(f"primary_domain: {primary_domain=}")
+
     save_result = save_pdf_md_to_db(
         pdf_file_path=pdf_file_path,
         markdown_file_path=markdown_file_path,
+        primary_domain=primary_domain,
         paper_metadata=paper_metadata)
 
     # upload_result = upload_to_fastgpt_dataset(

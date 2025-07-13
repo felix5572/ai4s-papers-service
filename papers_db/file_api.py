@@ -14,7 +14,9 @@ PRIMARY_DOMAINS_LIST = [
     "abacus", 
     "unimol",
     "ai4s",
-    "test"
+    "test",
+    "unclassified",
+    "unknown"
 ]
 
 class FileListRequest(Schema):

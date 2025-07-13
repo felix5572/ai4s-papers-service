@@ -56,4 +56,6 @@ def test_upload_to_fastgpt():
         raise
 
 if __name__ == "__main__":
-    test_upload_to_fastgpt() 
+    test_upload_to_fastgpt()
+
+# FASTGPT_WEBURL=${FASTGPT_WEBURL} FASTGPT_DEVELOPER_API_KEY=${FASTGPT_DEVELOPER_API_KEY} pytest test_fastgpt_upload.py -s -v
