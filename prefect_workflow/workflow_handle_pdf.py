@@ -103,8 +103,8 @@ def parse_md_file_to_markdown(
         origin_file_path: str,
         temp_workdir: str
     ) -> dict:
-    if not origin_file_path.endswith('.md'):
-        raise ValueError(f"Unsupported file type: {origin_file_path=} must be .md markdown file")
+    if not origin_file_path.endswith('.md') and not origin_file_path.endswith('.txt'):
+        raise ValueError(f"Unsupported file type: {origin_file_path=} must be .md or .txt markdown file")
     
     parser_metadata = {}
     # markdown_text = 
