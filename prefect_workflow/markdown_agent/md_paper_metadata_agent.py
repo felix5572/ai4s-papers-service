@@ -50,6 +50,8 @@ md_paper_metadata_agent_instruction = \
 You are an academic paper metadata agent. You will be given markdown content directly.
 Analyze the markdown content and extract key bibliographic information in JSON format:
 For information not found in the document, use null.
+If the document is not a paper, please summarize the content, generate the most suitable title, year and abstract.
+
 {
   "title": "document title",
   "authors": "author names (comma-separated)",
