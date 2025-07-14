@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 
-import os
+import os, sys
 import tempfile
 import pytest
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 from workflow_handle_pdf import upload_to_fastgpt_dataset
 
 test_content = """# Test Paper
@@ -24,7 +25,7 @@ This is test content for the FastGPT dataset upload.
 def test_upload_to_fastgpt():
     """Test upload_to_fastgpt_dataset function"""
     
-    # Create temp markdown file
+    # Create temp markdown file 
     temp_dir = tempfile.mkdtemp()
     md_file = os.path.join(temp_dir, 'test_paper.md')
     
@@ -43,7 +44,7 @@ def test_upload_to_fastgpt():
     
     # Test function
     try:
-        result = upload_to_fastgpt_dataset.fn(md_file)
+        result = upload_to_fastgpt_dataset.fn(file_path=md_file)
         
         # Check result
         assert result is not None

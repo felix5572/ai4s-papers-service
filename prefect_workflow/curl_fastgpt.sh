@@ -30,9 +30,9 @@ curl --location --request POST "${FASTGPT_WEBURL}/api/core/dataset/collection/cr
 
 curl --location --request POST "${FASTGPT_WEBURL}/api/core/dataset/collection/create/localFile" \
     --header "Authorization: Bearer ${FASTGPT_DEVELOPER_API_KEY}" \
-    --form 'file=@"./pdf_parser_service/test_DeePMD-kit.md"' \
+    --form 'file=@"./test_dpgen.md"' \
     --form 'data="{
-        \"datasetId\": \"684897a43609eeebb2bc7391\",
+        \"datasetId\": \"6873ef82deecd959acb461fb\",
         \"parentId\": null,
         \"trainingType\": \"chunk\",
         \"chunkSettingMode\": \"auto\",

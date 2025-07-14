@@ -90,7 +90,13 @@ def parse_pdf_file_to_markdown(
     with open(markdown_path, "w") as f:
         f.write(markdown_text)
 
-    return markdown_path, parser_metadata
+    pdf_parse_result = {
+        "origin_file_path": origin_file_path,
+        "markdown_file_path": markdown_path,
+        "parser_metadata": parser_metadata
+    }
+
+    return pdf_parse_result
 
 
 def parse_md_file_to_markdown(
@@ -103,7 +109,13 @@ def parse_md_file_to_markdown(
     parser_metadata = {}
     # markdown_text = 
     # markdown_filename = os.path.basename(origin_file_path) + ".md"
-    return origin_file_path
+
+    pdf_parse_result = {
+        "origin_file_path": origin_file_path,
+        "markdown_file_path": origin_file_path,
+        "parser_metadata": parser_metadata
+    }
+    return pdf_parse_result
 
 
 @task
@@ -115,23 +127,19 @@ def parse_origin_file_to_markdown(
     file_extension = os.path.splitext(origin_file_path)[1]
 
     if file_extension == '.pdf':
-        markdown_path, parser_metadata = parse_pdf_file_to_markdown(
+        pdf_parse_result = parse_pdf_file_to_markdown(
             origin_file_path=origin_file_path,
             temp_workdir=temp_workdir
         )
     elif file_extension == '.md':
-        markdown_path, parser_metadata = parse_md_file_to_markdown(
+        pdf_parse_result = parse_md_file_to_markdown(
             origin_file_path=origin_file_path,
             temp_workdir=temp_workdir
         )
     else:
         raise ValueError(f"Unsupported file type: {file_extension=}")
 
-    pdf_parse_result = {
-        "origin_file_path": origin_file_path,
-        "markdown_file_path": markdown_path,
-        "parser_metadata": parser_metadata
-    }
+
     print(f"pdf_parse_result: {pdf_parse_result=}")
     return pdf_parse_result
 #%%
@@ -230,14 +238,18 @@ def upload_to_fastgpt_dataset(
     filename = os.path.basename(file_path)
 
     with open(file_path, 'rb') as f:
+        # 分开传递文件和数据，模拟curl的行为
         files = {
-            'file': (filename, f, 'text/markdown'),  # 使用实际的文件名
-            'data': data_json  # 直接传JSON字符串
+            'file': (filename, f, 'text/markdown')
+        }
+        data = {
+            'data': data_json
         }
         response = requests.post(
             f"{fastgpt_weburl}/api/core/dataset/collection/create/localFile", 
             headers={"Authorization": f"Bearer {fastgpt_developer_api_key}"}, 
-            files=files
+            files=files,
+            data=data  # 分开传递data参数
         )
         response.raise_for_status()
     
