@@ -297,7 +297,7 @@ def get_primary_domain_from_pdf_url(s3_object_url: str) -> str:
 
 @flow(
     flow_run_name="process-{s3_object_url}",
-    persist_result=True,
+    persist_result=False,
     # result_storage="s3-bucket/sealos-bja-prefect-storage-s3",
 )
 def workflow_handle_pdf_to_db_and_fastgpt(
