@@ -72,14 +72,14 @@ class Paper(models.Model):
         help_text="arXiv identifier"
     )
 
-    pdf_filename = models.CharField(
+    origin_filename = models.CharField(
         max_length=255,
         blank=True,
         null=True,
         help_text="Original PDF filename"
     )
 
-    pdf_filemd5 = models.CharField(
+    origin_filemd5 = models.CharField(
         max_length=32,
         blank=True,
         null=True,
@@ -87,11 +87,19 @@ class Paper(models.Model):
     )
     
     # File storage - for PostgreSQL binary storage
-    pdf_content = models.BinaryField(
+    origin_content = models.BinaryField(
         blank=True,
         null=True,
         help_text="PDF file binary content stored in PostgreSQL"
     )
+
+    origin_filelink = models.URLField(
+        blank=True,
+        null=True,
+        validators=[URLValidator()],
+        help_text="Original URL of the file (optional)"
+    )
+
     
     markdown_filename = models.CharField(
         max_length=255,
@@ -153,9 +161,9 @@ class Paper(models.Model):
             models.Index(fields=['doi']),
             models.Index(fields=['primary_domain']),
             models.Index(fields=['created_at']),
-            models.Index(fields=['pdf_filemd5']),
+            models.Index(fields=['origin_filemd5']),
             models.Index(fields=['is_active']),
-            models.Index(fields=['pdf_filemd5', 'is_active']),  # For deduplication queries
+            models.Index(fields=['origin_filemd5', 'is_active']),  # For deduplication queries
         ]
     
     def __str__(self):
@@ -176,7 +184,7 @@ class Paper(models.Model):
     
     def has_files(self):
         """Check if the paper has associated files."""
-        return bool(self.pdf_content or self.markdown_content)
+        return bool(self.origin_content or self.markdown_content)
     
     @property
     def short_title(self):
@@ -197,9 +205,9 @@ class Paper(models.Model):
     
     def save(self, *args, **kwargs):
         """重写save方法，自动计算MD5"""
-        # 自动计算PDF MD5
-        if self.pdf_content:
-            self.pdf_filemd5 = self._calculate_md5(self.pdf_content)
+        # 自动计算原始文件的MD5
+        if self.origin_content:
+            self.origin_filemd5 = self._calculate_md5(self.origin_content)
         
         # 自动计算Markdown MD5  
         if self.markdown_content:

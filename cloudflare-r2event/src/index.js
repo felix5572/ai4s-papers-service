@@ -119,13 +119,13 @@ export default {
         const event = message.body;
         
         // Only process PDF files
-        if (!event.object.key.endsWith('.pdf')) {
-          console.log(`Skipping non-PDF file: ${event.object.key}`);
-          message.ack();
-          continue;
-        }
+        // if (!event.object.key.endsWith('.pdf')) {
+        //   console.log(`Skipping non-PDF file: ${event.object.key}`);
+        //   message.ack();
+        //   continue;
+        // }
         
-        const s3_pdf_url = `${env.R2_PUBLIC_URL}/${event.object.key}`;
+        const s3_object_url = `${env.R2_PUBLIC_URL}/${event.object.key}`;
         
         // Create flow run with deployment ID
         const apiUrl = `${env.PREFECT_API_URL}/deployments/${deploymentId}/create_flow_run`;
@@ -140,7 +140,7 @@ export default {
             },
             body: JSON.stringify({
                 parameters: {
-                    s3_pdf_url: s3_pdf_url
+                    s3_object_url: s3_object_url
                 }
             })
         });

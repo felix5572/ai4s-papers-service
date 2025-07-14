@@ -53,7 +53,7 @@ MARKDOWN_FOOTER_TEMPLATE = """
    memory=8192,
    scaledown_window=40
 )
-def parse_pdf_with_docling(pdf_url: Optional[str] = None, pdf_content: Optional[bytes] = None) -> dict:
+def parse_pdf_with_docling(pdf_url: Optional[str] = None, origin_content: Optional[bytes] = None) -> dict:
    try:
        from docling.document_converter import DocumentConverter, PdfFormatOption
        from docling.datamodel.base_models import InputFormat
@@ -69,12 +69,12 @@ def parse_pdf_with_docling(pdf_url: Optional[str] = None, pdf_content: Optional[
            response.raise_for_status()
            pdf_data = response.content
            filename = pdf_url.split('/')[-1]
-       elif pdf_content:
-           print(f"Docling解析PDF (直接上传): {len(pdf_content)} bytes")
-           pdf_data = pdf_content
+       elif origin_content:
+           print(f"Docling解析PDF (直接上传): {len(origin_content)} bytes")
+           pdf_data = origin_content
            filename = "uploaded.pdf"
        else:
-           raise ValueError("需要提供pdf_url或pdf_content")
+           raise ValueError("需要提供pdf_url或origin_content")
        
        pdf_size = len(pdf_data)
        
@@ -138,7 +138,7 @@ def parse_pdf_with_docling(pdf_url: Optional[str] = None, pdf_content: Optional[
    memory=8192,
    scaledown_window=40
 )
-def parse_pdf_with_marker(pdf_url: Optional[str] = None, pdf_content: Optional[bytes] = None) -> dict:
+def parse_pdf_with_marker(pdf_url: Optional[str] = None, origin_content: Optional[bytes] = None) -> dict:
    try:
        # 使用新版marker API
        from marker.converters.pdf import PdfConverter
@@ -154,12 +154,12 @@ def parse_pdf_with_marker(pdf_url: Optional[str] = None, pdf_content: Optional[b
            response.raise_for_status()
            pdf_data = response.content
            filename = pdf_url.split('/')[-1]
-       elif pdf_content:
-           print(f"Marker解析PDF (直接上传): {len(pdf_content)} bytes")
-           pdf_data = pdf_content
+       elif origin_content:
+           print(f"Marker解析PDF (直接上传): {len(origin_content)} bytes")
+           pdf_data = origin_content
            filename = "uploaded.pdf"
        else:
-           raise ValueError("需要提供pdf_url或pdf_content")
+           raise ValueError("需要提供pdf_url或origin_content")
        
        pdf_size = len(pdf_data)
        
@@ -260,22 +260,22 @@ def parse_pdf_upload(
     """
     try:
         # 读取上传的文件内容
-        pdf_content = file.file.read()
+        origin_content = file.file.read()
         
-        if not pdf_content:
+        if not origin_content:
             return {"success": False, "error": "文件内容为空"}
         
         # 验证文件类型
         if not file.filename.lower().endswith('.pdf'):
             return {"success": False, "error": "只支持PDF文件"}
         
-        print(f"收到文件上传: {file.filename}, 大小: {len(pdf_content)} bytes, 引擎: {engine}")
+        print(f"收到文件上传: {file.filename}, 大小: {len(origin_content)} bytes, 引擎: {engine}")
         
         # 路由到不同引擎
         if engine == "marker":
-            return parse_pdf_with_marker.remote(pdf_content=pdf_content)
+            return parse_pdf_with_marker.remote(origin_content=origin_content)
         else:
-            return parse_pdf_with_docling.remote(pdf_content=pdf_content)
+            return parse_pdf_with_docling.remote(origin_content=origin_content)
             
     except Exception as e:
         return {
@@ -314,8 +314,8 @@ def test():
    try:
        print("Testing file upload (if PDF exists)...")
        with open("test.pdf", "rb") as f:
-           pdf_content = f.read()
-       result3 = parse_pdf_with_marker.remote(pdf_content=pdf_content)
+           origin_content = f.read()
+       result3 = parse_pdf_with_marker.remote(origin_content=origin_content)
        print(f"Marker Upload: {result3['success']}")
    except FileNotFoundError:
        print("No test.pdf found, skipping file upload test")

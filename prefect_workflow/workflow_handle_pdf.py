@@ -32,39 +32,41 @@ DATASET_ID = "6873ef82deecd959acb461fb" # deepmodeling-general-db in bja sealos 
 def start_process_webhook_request(webhook_request: dict) -> dict:
     pass
 
+# @task
+# def 
+
 @task
-def download_pdf_from_s3(s3_pdf_url: str) -> dict:
+def download_origin_file_from_s3(s3_object_url: str) -> dict:
     """
     Download PDF from URL to temporary directory
     """
     # Create temporary directory
-    temp_workdir = tempfile.mkdtemp(prefix='pdf_download_')
+    temp_workdir = tempfile.mkdtemp(prefix='s3_object_download_')
     
     # Extract filename from URL
-    filename = os.path.basename(s3_pdf_url)
+    filename = os.path.basename(s3_object_url)
     
     # Create full file path
     file_path = os.path.join(temp_workdir, filename)
     
     # Download and save file
-    response = requests.get(s3_pdf_url)
+    response = requests.get(s3_object_url)
     with open(file_path, 'wb') as f:
         f.write(response.content)
     
     download_result = {
         'temp_workdir': temp_workdir,
-        'pdf_file_path': file_path,
+        'origin_file_path': file_path,
     }
     return download_result
 
-@task
-def parse_pdf_content(
-        pdf_file_path: str,
+def parse_pdf_file_to_markdown(
+        origin_file_path: str,
         temp_workdir: str
     ) -> dict:
     
-    with open(pdf_file_path, 'rb') as pdf_file:
-        files = {'file': (pdf_file_path, pdf_file, 'application/pdf')}
+    with open(origin_file_path, 'rb') as origin_file:
+        files = {'file': (origin_file_path, origin_file, 'application/pdf')}
         data = {'engine': 'marker'}
         
         print(f"calling Modal API to parse PDF... (engine: marker)")
@@ -83,18 +85,55 @@ def parse_pdf_content(
     markdown_text = result_json['markdown']
     parser_metadata = result_json['metadata']
 
-    markdown_filename = os.path.basename(pdf_file_path) + ".md"
+    markdown_filename = os.path.basename(origin_file_path) + ".md"
     markdown_path = os.path.join(temp_workdir, markdown_filename)
-
     with open(markdown_path, "w") as f:
         f.write(markdown_text)
 
-    parse_result = {
-        "pdf_file_path": pdf_file_path,
+    return markdown_path, parser_metadata
+
+
+def parse_md_file_to_markdown(
+        origin_file_path: str,
+        temp_workdir: str
+    ) -> dict:
+    if not origin_file_path.endswith('.md'):
+        raise ValueError(f"Unsupported file type: {origin_file_path=} must be .md markdown file")
+    
+    parser_metadata = {}
+    # markdown_text = 
+    # markdown_filename = os.path.basename(origin_file_path) + ".md"
+    return origin_file_path
+
+
+@task
+def parse_origin_file_to_markdown(
+        origin_file_path: str,
+        temp_workdir: str
+    ) -> dict:
+
+    file_extension = os.path.splitext(origin_file_path)[1]
+
+    if file_extension == '.pdf':
+        markdown_path, parser_metadata = parse_pdf_file_to_markdown(
+            origin_file_path=origin_file_path,
+            temp_workdir=temp_workdir
+        )
+    elif file_extension == '.md':
+        markdown_path, parser_metadata = parse_md_file_to_markdown(
+            origin_file_path=origin_file_path,
+            temp_workdir=temp_workdir
+        )
+    else:
+        raise ValueError(f"Unsupported file type: {file_extension=}")
+
+    pdf_parse_result = {
+        "origin_file_path": origin_file_path,
         "markdown_file_path": markdown_path,
         "parser_metadata": parser_metadata
     }
-    return parse_result
+    print(f"pdf_parse_result: {pdf_parse_result=}")
+    return pdf_parse_result
 #%%
 def parse_json_text_to_json_obj(json_text: str) -> dict:
     """public json parse logic"""
@@ -146,8 +185,8 @@ def agent_generate_paper_metadata(
     return paper_metadata
 #%%
 @task
-def save_pdf_md_to_db(
-    pdf_file_path: str,
+def save_origin_file_md_to_db(
+    origin_file_path: str,
     markdown_file_path: str, 
     paper_metadata: dict,
     primary_domain: str = 'deepmd',
@@ -155,13 +194,13 @@ def save_pdf_md_to_db(
 ) -> dict:
     import requests
 
-    print(f"saving paper to db: {pdf_file_path=} {markdown_file_path=} {paper_metadata=}")
+    print(f"saving paper to db: {origin_file_path=} {markdown_file_path=} {paper_metadata=}")
     
     base_data = paper_metadata.copy()
     base_data["primary_domain"] = primary_domain
     
     files = {}
-    files['pdf_file'] = open(pdf_file_path, 'rb')
+    files['origin_file'] = open(origin_file_path, 'rb')
     files['markdown_file'] = open(markdown_file_path, 'rb')
     
     response = requests.post(f"{api_base_url}/papers", data=base_data, files=files)
@@ -203,17 +242,17 @@ def upload_to_fastgpt_dataset(
 
 
 @task
-def get_primary_domain_from_pdf_url(s3_pdf_url: str) -> str:
+def get_primary_domain_from_pdf_url(s3_object_url: str) -> str:
     """
     Get primary domain from PDF URL
     """
     # "https://deepmodeling-docs-r2.deepmd.us/test/test_dpgen.pdf"
 
-    # primary_dir =  urlparse(s3_pdf_url).path.strip('/').split('/')[0]
-    parts = PurePosixPath(urlparse(s3_pdf_url).path).parts
+    # primary_dir =  urlparse(s3_object_url).path.strip('/').split('/')[0]
+    parts = PurePosixPath(urlparse(s3_object_url).path).parts
     if len(parts) <= 1:  #  '/'  only root directory
         first_dir = "/"
-    elif len(parts) == 2 and not urlparse(s3_pdf_url).path.endswith('/'):
+    elif len(parts) == 2 and not urlparse(s3_object_url).path.endswith('/'):
         # root directory file: /file.pdf
         first_dir = "/"  
     else:
@@ -234,58 +273,44 @@ def get_primary_domain_from_pdf_url(s3_pdf_url: str) -> str:
 
     return primary_domain
 
-# @task
-# def end_
 
-# @task
-# def get_customer_ids() -> list[str]:
-#     # Fetch customer IDs from a database or API
-#     return [f"customer{n}" for n in random.choices(range(100), k=3)]
-
-
-# @task
-# def get_pdf_content(s3_pdf_url: str) -> str:
-#     # Get the content of the PDF file
-#     return s3_pdf_url
-
-#%%
 
 
 
 @flow(
-    flow_run_name="process-{s3_pdf_url}",
+    flow_run_name="process-{s3_object_url}",
     persist_result=True,
     # result_storage="s3-bucket/sealos-bja-prefect-storage-s3",
 )
 def workflow_handle_pdf_to_db_and_fastgpt(
-    s3_pdf_url: str = "https://deepmodeling-docs-r2.deepmd.us/test/test_dpgen.pdf",
+    s3_object_url: str = "https://deepmodeling-docs-r2.deepmd.us/test/test_dpgen.pdf",
     # s3_object_key: str = "test.txt",
     # s3_bucket_endpoint: str = "https://deepmodeling-docs-r2.deepmd.us",
 ) -> list[str]:
 
     # s3_object_url = f"{s3_bucket_endpoint}/{s3_object_key}"
-    print(f"s3_pdf_url: {s3_pdf_url}")
+    print(f"s3_object_url: {s3_object_url}")
 
-    download_result = download_pdf_from_s3(s3_pdf_url)
-    primary_domain = get_primary_domain_from_pdf_url(s3_pdf_url)
+    download_result = download_origin_file_from_s3(s3_object_url)
+    primary_domain = get_primary_domain_from_pdf_url(s3_object_url)
     
 
     temp_workdir = download_result['temp_workdir']
-    pdf_file_path = download_result['pdf_file_path']
+    origin_file_path = download_result['origin_file_path']
     # markdown_file_path = download_result['markdown_file_path']
     
-    parse_result = parse_pdf_content(
-        pdf_file_path=pdf_file_path,
+    origin_file_parse_result = parse_origin_file_to_markdown(
+        origin_file_path=origin_file_path,
         temp_workdir=temp_workdir)
 
-    markdown_file_path = parse_result['markdown_file_path']
+    markdown_file_path = origin_file_parse_result['markdown_file_path']
     
     paper_metadata = agent_generate_paper_metadata(markdown_file_path=markdown_file_path)
 
-    # print(f"primary_domain: {primary_domain=}")
+    print(f"primary_domain: {primary_domain=}")
 
-    save_result = save_pdf_md_to_db(
-        pdf_file_path=pdf_file_path,
+    save_result = save_origin_file_md_to_db(
+        origin_file_path=origin_file_path,
         markdown_file_path=markdown_file_path,
         primary_domain=primary_domain,
         paper_metadata=paper_metadata)
@@ -303,7 +328,7 @@ def workflow_handle_pdf_to_db_and_fastgpt(
         "save_result": save_result,
         "upload_result": upload_result
     }
-    # summary = f"Processed PDF: {s3_pdf_url}"
+    # summary = f"Processed PDF: {s3_object_url}"
 
     return workflow_result
 

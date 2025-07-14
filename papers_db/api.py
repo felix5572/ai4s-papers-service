@@ -16,7 +16,7 @@ api = NinjaAPI(title="Papers API", csrf=False)
 # PDF Parser API URL from Django settings
 PDF_PARSER_API_URL = settings.PDF_PARSER_API_URL
 
-async def parse_pdf_with_modal_async(pdf_content: bytes, filename: str) -> str:
+async def parse_pdf_with_modal_async(origin_content: bytes, filename: str) -> str:
     """Call Modal GPU API to parse PDF content - ASYNC VERSION"""
     print(f'=== DEBUG: Calling Modal GPU API for PDF parsing (async) ===: {filename}')
     print(f'=== DEBUG: PDF_PARSER_API_URL = {PDF_PARSER_API_URL} ===')
@@ -27,14 +27,14 @@ async def parse_pdf_with_modal_async(pdf_content: bytes, filename: str) -> str:
     
     try:
         print(f'=== DEBUG: Using direct file upload endpoint ===: {PDF_PARSER_API_URL}')
-        print(f'=== DEBUG: File size: {len(pdf_content)} bytes ===')
+        print(f'=== DEBUG: File size: {len(origin_content)} bytes ===')
         
         # Use async HTTP client with direct file upload
         async with httpx.AsyncClient(timeout=300.0) as client:
             
             # Prepare multipart form data for direct upload
             files = {
-                'file': (filename, pdf_content, 'application/pdf')
+                'file': (filename, origin_content, 'application/pdf')
             }
             data = {
                 'engine': 'marker'  # or 'docling'
@@ -75,17 +75,17 @@ def calculate_md5(content: bytes) -> str:
     """Calculate MD5 hash of binary content"""
     return hashlib.md5(content).hexdigest()
 
-def deactivate_duplicate_papers(pdf_filemd5: str) -> int:
+def deactivate_duplicate_papers(origin_filemd5: str) -> int:
     """
     Deactivate papers with the same PDF MD5 hash
     Returns the number of deactivated papers
     """
-    if not pdf_filemd5:
+    if not origin_filemd5:
         return 0
     
     # Find papers with same PDF MD5 that are currently active
     duplicate_papers = Paper.objects.filter(
-        pdf_filemd5=pdf_filemd5,
+        origin_filemd5=origin_filemd5,
         is_active=True
     )
     
@@ -95,7 +95,7 @@ def deactivate_duplicate_papers(pdf_filemd5: str) -> int:
     # Deactivate all duplicates
     if count > 0:
         duplicate_papers.update(is_active=False)
-        print(f"=== DEDUP: Deactivated {count} duplicate papers with pdf_filemd5={pdf_filemd5} ===")
+        print(f"=== DEDUP: Deactivated {count} duplicate papers with origin_filemd5={origin_filemd5} ===")
     
     return count
 
@@ -117,30 +117,26 @@ def create_paper(request):
         form_data = request.POST.dict()
         
         # 获取上传的文件
-        pdf_file = request.FILES.get('pdf_file')
+        origin_file = request.FILES.get('origin_file', None) or request.FILES.get('pdf_file', None)
         markdown_file = request.FILES.get('markdown_file')
         
         paper_data = form_data.copy()
         
         # 处理文件内容
-        if pdf_file:
-            pdf_content = pdf_file.read()
-            paper_data['pdf_content'] = pdf_content
-            paper_data['pdf_filename'] = pdf_file.name
+        if origin_file:
+            # 读取文件内容为字节
+            origin_content = origin_file.read()
+            paper_data['origin_filename'] = origin_file.name
+            paper_data['origin_content'] = origin_content
             
-            # Calculate PDF MD5 and handle deduplication
-            pdf_filemd5 = calculate_md5(pdf_content)
-            # paper_data['pdf_filemd5'] = pdf_filemd5
-            deactivate_duplicate_papers(pdf_filemd5)
+            # Calculate MD5 and handle deduplication
+            origin_filemd5 = calculate_md5(origin_content)
+            deactivate_duplicate_papers(origin_filemd5)
         
         if markdown_file:
             markdown_content = markdown_file.read()
             paper_data['markdown_content'] = markdown_content
             paper_data['markdown_filename'] = markdown_file.name
-            
-            # Calculate markdown MD5
-            # markdown_filemd5 = calculate_md5(markdown_content)
-            # paper_data['markdown_filemd5'] = markdown_filemd5
             
     else:
         # JSON请求 - 纯元数据
@@ -153,23 +149,23 @@ def create_paper(request):
 # @api.post("/papers/upload-parse", response=PaperOut)
 # async def create_paper_upload_parse(request, 
 #                                    paper_data: Form[PaperFileUpload],
-#                                    pdf_file: UploadedFile = File(...)): # type: ignore
+#                                    origin_file: UploadedFile = File(...)): # type: ignore
 #     """Create new paper - PDF upload with async parsing to Markdown"""
 #     print('=== DEBUG: PDF upload and parse API called ===')
     
 #     # Validate file type
-#     if not pdf_file.name.lower().endswith('.pdf'):
+#     if not origin_file.name.lower().endswith('.pdf'):
 #         raise ValueError("Only PDF files are accepted")
     
 #     try:
 #         # Read PDF content
-#         pdf_content = pdf_file.read()
-#         print(f'=== DEBUG: PDF file size ===: {len(pdf_content)} bytes')
+#         origin_content = origin_file.read()
+#         print(f'=== DEBUG: PDF file size ===: {len(origin_content)} bytes')
         
 #         # Prepare data
 #         data = paper_data.model_dump()
-#         data['pdf_filename'] = pdf_file.name
-#         data['pdf_content'] = pdf_content
+#         data['origin_filename'] = origin_file.name
+#         data['origin_content'] = origin_content
 #         data['markdown_content'] = None  # Will be updated later
         
 #         # Create paper with deduplication
@@ -178,7 +174,7 @@ def create_paper(request):
         
 #         # Parse PDF asynchronously
 #         print('=== DEBUG: Starting async PDF parsing ===')
-#         markdown_content = await parse_pdf_with_modal_async(pdf_content, pdf_file.name)
+#         markdown_content = await parse_pdf_with_modal_async(origin_content, origin_file.name)
         
 #         # Update markdown content
 #         if markdown_content:

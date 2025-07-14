@@ -68,7 +68,7 @@ def list_files(request, payload: FileListRequest):
             "id": f"paper_{paper.id}",
             "parentId": payload.parentId,
             # "name": f"{paper.year} {paper.title}",
-            "name": f"Paper {paper.id} {paper.pdf_filename} {paper.title}",
+            "name": f"Paper {paper.id} {paper.origin_filename} {paper.title}",
             "type": "file",
             "updateTime": datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
             "createTime": datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%fZ')
@@ -94,7 +94,7 @@ def get_file_content(request, id: str):
     # content = paper.markdown_content or None
     content = bytes(paper.markdown_content).decode('utf-8') if paper.markdown_content else None
 
-    preview_url = f"/api/file/pdf/{paper.id}" if paper.pdf_content else None
+    preview_url = f"/api/file/pdf/{paper.id}" if paper.origin_content else None
     
     return {
         "code": 200,
@@ -113,8 +113,8 @@ def serve_pdf(request, paper_id: int):
     from django.http import HttpResponse
     
     paper = Paper.objects.get(id=paper_id)
-    response = HttpResponse(paper.pdf_content, content_type='application/pdf')
-    response['Content-Disposition'] = f'inline; filename="{paper.pdf_filename or "paper.pdf"}"'
+    response = HttpResponse(paper.origin_content, content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="{paper.origin_filename or "paper.pdf"}"'
     return response
 
 @file_api.get("/v1/file/detail")

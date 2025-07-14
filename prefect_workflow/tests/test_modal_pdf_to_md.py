@@ -4,11 +4,11 @@ import os
 import tempfile
 import requests
 import pytest
-from workflow_handle_pdf import parse_pdf_content
+from workflow_handle_pdf import parse_origin_file_to_markdown
 
 @pytest.mark.slow
 def test_parse_pdf_only():
-    """Test parse_pdf_content function"""
+    """Test parse_origin_content function"""
     
     # Create temp files
     temp_dir = tempfile.mkdtemp()
@@ -22,7 +22,7 @@ def test_parse_pdf_only():
     
     # Test function
     try:
-        parse_result = parse_pdf_content.fn(pdf_file, temp_dir)
+        parse_result = parse_origin_file_to_markdown.fn(origin_file_path=pdf_file, temp_workdir=temp_dir)
         print(f"parse_result: {parse_result=}")
 
         # Check result

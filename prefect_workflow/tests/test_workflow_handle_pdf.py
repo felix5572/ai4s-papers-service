@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
-import os
+import os, sys
 import pytest
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 from workflow_handle_pdf import workflow_handle_pdf_to_db_and_fastgpt
 
 @pytest.mark.slow
@@ -20,7 +21,7 @@ def test_workflow_locally():
     
     try:
         # Call the flow directly as a regular function
-        result = workflow_handle_pdf_to_db_and_fastgpt(s3_pdf_url=test_url)
+        result = workflow_handle_pdf_to_db_and_fastgpt(s3_object_url=test_url)
         print(f"Workflow completed successfully!")
         print(f"Result: {result}")
         return result

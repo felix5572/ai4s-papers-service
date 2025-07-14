@@ -9,7 +9,7 @@ class PaperOut(ModelSchema):
     class Meta:
         model = Paper
         fields = "__all__"
-        exclude = ["pdf_content", "markdown_content", "abstract"] 
+        exclude = ["origin_content", "markdown_content", "abstract"] 
 
 
 class PaperIn(ModelSchema):
@@ -17,7 +17,7 @@ class PaperIn(ModelSchema):
     class Meta:
         model = Paper
         fields = "__all__"
-        exclude = ["pdf_content", "pdf_filename", "markdown_filename", "markdown_content", "id", "created_at", "updated_at"] 
+        exclude = ["origin_content", "origin_filename", "markdown_filename", "markdown_content", "id", "created_at", "updated_at"] 
 
 
 class PaperFileUpload(ModelSchema):
@@ -25,4 +25,4 @@ class PaperFileUpload(ModelSchema):
     class Meta:
         model = Paper
         fields = "__all__"
-        exclude = ["pdf_content", "markdown_content", "id", "created_at", "updated_at"]
+        exclude = ["origin_content", "markdown_content", "id", "created_at", "updated_at"]

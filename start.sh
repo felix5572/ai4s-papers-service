@@ -1,4 +1,5 @@
 #!/bin/bash
+# this file not in use for now
 set -e
 
 # Apply database migrations

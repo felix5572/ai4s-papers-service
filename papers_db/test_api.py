@@ -12,7 +12,7 @@ class PaperAPITest(TestCase):
         self.client = Client()
         
         # Create a simple PDF-like content for testing
-        self.test_pdf_content = b'%PDF-1.4\n1 0 obj\n<<\n/Type /Catalog\n/Pages 2 0 R\n>>\nendobj\n2 0 obj\n<<\n/Type /Pages\n/Kids [3 0 R]\n/Count 1\n>>\nendobj\n3 0 obj\n<<\n/Type /Page\n/Parent 2 0 R\n/MediaBox [0 0 612 792]\n>>\nendobj\nxref\n0 4\n0000000000 65535 f \n0000000009 00000 n \n0000000074 00000 n \n0000000120 00000 n \ntrailer\n<<\n/Size 4\n/Root 1 0 R\n>>\nstartxref\n174\n%%EOF'
+        self.test_origin_content = b'%PDF-1.4\n1 0 obj\n<<\n/Type /Catalog\n/Pages 2 0 R\n>>\nendobj\n2 0 obj\n<<\n/Type /Pages\n/Kids [3 0 R]\n/Count 1\n>>\nendobj\n3 0 obj\n<<\n/Type /Page\n/Parent 2 0 R\n/MediaBox [0 0 612 792]\n>>\nendobj\nxref\n0 4\n0000000000 65535 f \n0000000009 00000 n \n0000000074 00000 n \n0000000120 00000 n \ntrailer\n<<\n/Size 4\n/Root 1 0 R\n>>\nstartxref\n174\n%%EOF'
         
         # Test metadata
         self.test_metadata = {
@@ -85,14 +85,14 @@ class PaperAPITest(TestCase):
         """Test uploading paper with PDF file only (sync)"""
         print("\n=== Test: Upload Paper with PDF (Sync) ===")
         
-        pdf_file = SimpleUploadedFile(
+        origin_file = SimpleUploadedFile(
             "test_paper.pdf",
-            self.test_pdf_content,
+            self.test_origin_content,
             content_type="application/pdf"
         )
         
         form_data = self.test_metadata.copy()
-        form_data['pdf_file'] = pdf_file
+        form_data['origin_file'] = origin_file
         
         response = self.client.post('/api/papers/upload', form_data)
         
@@ -103,20 +103,20 @@ class PaperAPITest(TestCase):
         print(f"Response: {json.dumps(data, indent=2, ensure_ascii=False)}")
         
         self.assertEqual(data['title'], 'Test Paper for PDF Upload')
-        self.assertEqual(data['pdf_filename'], 'test_paper.pdf')
+        self.assertEqual(data['origin_filename'], 'test_paper.pdf')
         
         # Verify PDF content saved
         paper = Paper.objects.get(title='Test Paper for PDF Upload') # type: ignore
-        self.assertIsNotNone(paper.pdf_content)
-        self.assertEqual(len(paper.pdf_content), len(self.test_pdf_content))
+        self.assertIsNotNone(paper.origin_content)
+        self.assertEqual(len(paper.origin_content), len(self.test_origin_content))
     
     def test_upload_paper_with_markdown(self):
         """Test uploading paper with both PDF and Markdown files"""
         print("\n=== Test: Upload Paper with PDF and Markdown ===")
         
-        pdf_file = SimpleUploadedFile(
+        origin_file = SimpleUploadedFile(
             "test_paper.pdf",
-            self.test_pdf_content,
+            self.test_origin_content,
             content_type="application/pdf"
         )
         
@@ -129,7 +129,7 @@ class PaperAPITest(TestCase):
         
         form_data = self.test_metadata.copy()
         form_data['title'] = 'Paper with Both Files'
-        form_data['pdf_file'] = pdf_file
+        form_data['origin_file'] = origin_file
         form_data['markdown_file'] = markdown_file
         
         response = self.client.post('/api/papers/upload', form_data)
@@ -142,7 +142,7 @@ class PaperAPITest(TestCase):
         
         # Verify both files saved
         paper = Paper.objects.get(title='Paper with Both Files') # type: ignore
-        self.assertIsNotNone(paper.pdf_content)
+        self.assertIsNotNone(paper.origin_content)
         self.assertIsNotNone(paper.markdown_content)
         self.assertIn('Test Paper', paper.markdown_content)
         self.assertEqual(paper.markdown_filename, 'test_paper.md')
@@ -155,15 +155,15 @@ class PaperAPITest(TestCase):
         # Mock successful parsing
         mock_parse.return_value = "# Parsed Content\n\nThis is parsed markdown from PDF."
         
-        pdf_file = SimpleUploadedFile(
+        origin_file = SimpleUploadedFile(
             "parse_test.pdf",
-            self.test_pdf_content,
+            self.test_origin_content,
             content_type="application/pdf"
         )
         
         form_data = self.test_metadata.copy()
         form_data['title'] = 'PDF Parse Test'
-        form_data['pdf_file'] = pdf_file
+        form_data['origin_file'] = origin_file
         
         response = self.client.post('/api/papers/upload-parse', form_data)
         
@@ -178,7 +178,7 @@ class PaperAPITest(TestCase):
         
         # Verify paper saved with markdown
         paper = Paper.objects.get(title='PDF Parse Test') # type: ignore
-        self.assertIsNotNone(paper.pdf_content)
+        self.assertIsNotNone(paper.origin_content)
         self.assertIsNotNone(paper.markdown_content)
         self.assertIn('Parsed Content', paper.markdown_content)
     
@@ -190,15 +190,15 @@ class PaperAPITest(TestCase):
         # Mock failed parsing
         mock_parse.return_value = ""
         
-        pdf_file = SimpleUploadedFile(
+        origin_file = SimpleUploadedFile(
             "parse_fail_test.pdf",
-            self.test_pdf_content,
+            self.test_origin_content,
             content_type="application/pdf"
         )
         
         form_data = self.test_metadata.copy()
         form_data['title'] = 'PDF Parse Fail Test'
-        form_data['pdf_file'] = pdf_file
+        form_data['origin_file'] = origin_file
         
         response = self.client.post('/api/papers/upload-parse', form_data)
         
@@ -210,7 +210,7 @@ class PaperAPITest(TestCase):
         
         # Verify paper saved but no markdown
         paper = Paper.objects.get(title='PDF Parse Fail Test') # type: ignore
-        self.assertIsNotNone(paper.pdf_content)
+        self.assertIsNotNone(paper.origin_content)
         self.assertIsNone(paper.markdown_content)
     
     def test_upload_parse_invalid_file(self):
@@ -225,7 +225,7 @@ class PaperAPITest(TestCase):
         )
         
         form_data = self.test_metadata.copy()
-        form_data['pdf_file'] = text_file
+        form_data['origin_file'] = text_file
         
         response = self.client.post('/api/papers/upload-parse', form_data)
         
@@ -254,15 +254,15 @@ class PaperAPITest(TestCase):
         mock_context.post = AsyncMock(return_value=mock_response)
         mock_client.return_value = mock_context
         
-        pdf_file = SimpleUploadedFile(
+        origin_file = SimpleUploadedFile(
             "direct_upload_test.pdf",
-            self.test_pdf_content,
+            self.test_origin_content,
             content_type="application/pdf"
         )
         
         form_data = self.test_metadata.copy()
         form_data['title'] = 'Direct Upload Test'
-        form_data['pdf_file'] = pdf_file
+        form_data['origin_file'] = origin_file
         
         response = self.client.post('/api/papers/upload-parse', form_data)
         
@@ -277,7 +277,7 @@ class PaperAPITest(TestCase):
         
         # Verify paper saved with parsed markdown
         paper = Paper.objects.get(title='Direct Upload Test') # type: ignore
-        self.assertIsNotNone(paper.pdf_content)
+        self.assertIsNotNone(paper.origin_content)
         self.assertIsNotNone(paper.markdown_content)
         self.assertIn('Direct Upload Test', paper.markdown_content)
 
@@ -297,15 +297,15 @@ class PaperAPITest(TestCase):
         mock_context.post = AsyncMock(return_value=mock_response)
         mock_client.return_value = mock_context
         
-        pdf_file = SimpleUploadedFile(
+        origin_file = SimpleUploadedFile(
             "error_test.pdf",
-            self.test_pdf_content,
+            self.test_origin_content,
             content_type="application/pdf"
         )
         
         form_data = self.test_metadata.copy()
         form_data['title'] = 'Error Test Paper'
-        form_data['pdf_file'] = pdf_file
+        form_data['origin_file'] = origin_file
         
         response = self.client.post('/api/papers/upload-parse', form_data)
         
@@ -314,7 +314,7 @@ class PaperAPITest(TestCase):
         
         # Paper should still be saved even if parsing fails
         paper = Paper.objects.get(title='Error Test Paper') # type: ignore
-        self.assertIsNotNone(paper.pdf_content)
+        self.assertIsNotNone(paper.origin_content)
         self.assertIsNone(paper.markdown_content)  # No markdown due to parsing failure
 
     @patch('papers_db.api.httpx.AsyncClient')
@@ -329,15 +329,15 @@ class PaperAPITest(TestCase):
         mock_context.post = AsyncMock(side_effect=TimeoutException("Request timeout"))
         mock_client.return_value = mock_context
         
-        pdf_file = SimpleUploadedFile(
+        origin_file = SimpleUploadedFile(
             "timeout_test.pdf",
-            self.test_pdf_content,
+            self.test_origin_content,
             content_type="application/pdf"
         )
         
         form_data = self.test_metadata.copy()
         form_data['title'] = 'Timeout Test Paper'
-        form_data['pdf_file'] = pdf_file
+        form_data['origin_file'] = origin_file
         
         response = self.client.post('/api/papers/upload-parse', form_data)
         
@@ -346,7 +346,7 @@ class PaperAPITest(TestCase):
         
         # Paper should still be saved even if parsing times out
         paper = Paper.objects.get(title='Timeout Test Paper') # type: ignore
-        self.assertIsNotNone(paper.pdf_content)
+        self.assertIsNotNone(paper.origin_content)
         self.assertIsNone(paper.markdown_content)  # No markdown due to timeout
 
 
@@ -378,7 +378,7 @@ curl -X POST "https://ai4s-papers-service.deepmd.us/api/papers/upload" \
   -F "primary_domain=deepmd" \
   -F "journal=Upload Journal" \
   -F "abstract=Upload test abstract" \
-  -F "pdf_file=@/path/to/your/paper.pdf"
+  -F "origin_file=@/path/to/your/paper.pdf"
 
 4. Upload PDF with async parsing (NEW: Direct File Upload):
 curl -X POST "https://ai4s-papers-service.deepmd.us/api/papers/upload-parse" \
@@ -390,7 +390,7 @@ curl -X POST "https://ai4s-papers-service.deepmd.us/api/papers/upload-parse" \
   -F "abstract=This paper will be parsed using direct file upload" \
   -F "keywords=parsing, test, async, direct-upload" \
   -F "doi=10.1000/parse.test" \
-  -F "pdf_file=@/path/to/your/paper.pdf"
+  -F "origin_file=@/path/to/your/paper.pdf"
 
 5. Upload with both PDF and Markdown:
 curl -X POST "https://ai4s-papers-service.deepmd.us/api/papers/upload" \
@@ -398,7 +398,7 @@ curl -X POST "https://ai4s-papers-service.deepmd.us/api/papers/upload" \
   -F "authors=Both Files Author" \
   -F "year=2024" \
   -F "primary_domain=abacus" \
-  -F "pdf_file=@/path/to/paper.pdf" \
+  -F "origin_file=@/path/to/paper.pdf" \
   -F "markdown_file=@/path/to/paper.md"
 
 6. Test FastGPT API integration:
@@ -415,7 +415,7 @@ curl -X POST "http://localhost:8000/api/papers/upload-parse" \
   -F "authors=Local Author" \
   -F "year=2024" \
   -F "primary_domain=test" \
-  -F "pdf_file=@/path/to/test.pdf"
+  -F "origin_file=@/path/to/test.pdf"
 
 === Testing with Sample PDF ===
 

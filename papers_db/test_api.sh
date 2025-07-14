@@ -25,7 +25,7 @@ curl -X POST http://localhost:8000/api/papers/upload \
   -F "doi=10.1000/upload.2024" \
   -F "arxiv_id=2024.upload" \
   -F "tags=upload, file, complete" \
-  -F "pdf_file=@test_DeePMD-kit.pdf" \
+  -F "origin_file=@test_DeePMD-kit.pdf" \
   -F "markdown_file=@test_DeePMD-kit.md"
 
 curl -X POST localhost:8000/api/fastgpt/v1/file/list \
@@ -59,7 +59,7 @@ curl -X POST "http://localhost:8000/api/papers/upload-parse" \
   -F "abstract=This paper will be parsed" \
   -F "keywords=parsing, test, async" \
   -F "doi=10.1000/parse.test" \
-  -F "pdf_file=@test_DeePMD-kit.pdf"
+  -F "origin_file=@test_DeePMD-kit.pdf"
 
 # # # test get papers again
 # # curl -X GET http://localhost:8000/api/papers
