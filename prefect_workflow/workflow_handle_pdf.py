@@ -280,6 +280,7 @@ def get_primary_domain_from_pdf_url(s3_object_url: str) -> str:
         "deepmd/": "deepmd",
         "deepmd-kit/": "deepmd",
         "abacus/": "abacus",
+        "deeptb/": "deeptb",
         "unimol/": "unimol",
         "ai4s/": "ai4s",
         "test/": "test",
