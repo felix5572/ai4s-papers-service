@@ -3,5 +3,8 @@
   "start_command": "bash start.sh",
   "install_command": "pip install .",
   "framework": "python",
-  "watch": ["prefect_workflow/**", "main.py", "pyproject.toml"]
+  "watch": ["prefect_workflow/**", "main.py", "pyproject.toml"],
+  "env": {
+    "PREFECT_LOGGING_LOG_PRINTS": "True"
+  }
 }
