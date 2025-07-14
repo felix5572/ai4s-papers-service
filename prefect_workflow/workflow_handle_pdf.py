@@ -131,7 +131,7 @@ def parse_origin_file_to_markdown(
             origin_file_path=origin_file_path,
             temp_workdir=temp_workdir
         )
-    elif file_extension == '.md':
+    elif file_extension == '.md' or file_extension == '.txt':
         pdf_parse_result = parse_md_file_to_markdown(
             origin_file_path=origin_file_path,
             temp_workdir=temp_workdir

@@ -20,7 +20,7 @@ class PaperAdmin(admin.ModelAdmin):
     search_help_text = "Search by title, authors, or DOI"
     
     # Ordering and sorting
-    ordering = ['id', '-year', 'title']
+    ordering = ['-id', 'year', 'title']
     sortable_by = ['id', 'title', 'year', 'created_at', 'origin_filename', 'origin_filemd5']  # Which columns are sortable
     
     # Form configuration
