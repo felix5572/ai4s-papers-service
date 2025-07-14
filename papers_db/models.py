@@ -35,7 +35,10 @@ class Paper(models.Model):
     )
     
     year = models.PositiveIntegerField(
-        help_text="Publication year"
+        help_text="Publication year",
+        blank=True,
+        null=True,
+        default=2025,
     )
     
     journal = models.CharField(
@@ -205,6 +208,10 @@ class Paper(models.Model):
     
     def save(self, *args, **kwargs):
         """重写save方法，自动计算MD5"""
+        # 如果年份传入None，设为默认值2025
+        if self.year is None:
+            self.year = 2025
+            
         # 自动计算原始文件的MD5
         if self.origin_content:
             self.origin_filemd5 = self._calculate_md5(self.origin_content)
