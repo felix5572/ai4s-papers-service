@@ -217,17 +217,22 @@ def upload_to_fastgpt_dataset(
     fastgpt_developer_api_key: str = FASTGPT_DEVELOPER_API_KEY
 ) -> dict:
     
-    data = {
+    # 准备data字段的JSON字符串
+    data_json = json.dumps({
         "datasetId": dataset_id, 
+        "parentId": None,
         "trainingType": "chunk", 
         "chunkSettingMode": "auto",
         "metadata": {}
-    }
+    })
+
+    # 获取实际的文件名
+    filename = os.path.basename(file_path)
 
     with open(file_path, 'rb') as f:
         files = {
-            'file': f,
-            'data': (None, json.dumps(data))
+            'file': (filename, f, 'text/markdown'),  # 使用实际的文件名
+            'data': data_json  # 直接传JSON字符串
         }
         response = requests.post(
             f"{fastgpt_weburl}/api/core/dataset/collection/create/localFile", 
