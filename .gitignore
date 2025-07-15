@@ -1,3 +1,9 @@
+# used by developer
+bks/
+# spider output files
+spider_out_*.json
+spider_out_*/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -20,7 +26,7 @@ parts/
 sdist/
 var/
 wheels/
-bks/
+
 share/python-wheels/
 *.egg-info/
 .installed.cfg
