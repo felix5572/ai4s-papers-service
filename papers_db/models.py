@@ -124,6 +124,13 @@ class Paper(models.Model):
         help_text="Markdown file binary content stored in PostgreSQL"
     )
 
+    fastgpt_collectionId = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        help_text="FastGPT collection ID"
+    )
+
     
     # Metadata and tracking
     created_at = models.DateTimeField(

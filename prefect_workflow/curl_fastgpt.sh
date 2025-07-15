@@ -30,7 +30,7 @@ curl --location --request POST "${FASTGPT_WEBURL}/api/core/dataset/collection/cr
 
 curl --location --request POST "${FASTGPT_WEBURL}/api/core/dataset/collection/create/localFile" \
     --header "Authorization: Bearer ${FASTGPT_DEVELOPER_API_KEY}" \
-    --form 'file=@"./test_dpgen.md"' \
+    --form 'file=@"../bks/test_dpgen.md"' \
     --form 'data="{
         \"datasetId\": \"6873ef82deecd959acb461fb\",
         \"parentId\": null,
@@ -38,3 +38,7 @@ curl --location --request POST "${FASTGPT_WEBURL}/api/core/dataset/collection/cr
         \"chunkSettingMode\": \"auto\",
         \"metadata\": {}
     }"'
+# deleta test_dpgen.md
+curl --location --request DELETE "${FASTGPT_WEBURL}/api/core/dataset/collection/delete?id=68765d50f06e1a169bbad919" \
+--header "Authorization: Bearer ${FASTGPT_DEVELOPER_API_KEY}"
+
