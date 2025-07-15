@@ -269,7 +269,7 @@ def upload_to_fastgpt_dataset(
 
     print(f"upload_to_fastgpt_dataset result: {fastgpt_upload_result=}")
 
-    fastgpt_collectionId = fastgpt_upload_result['data']['id']
+    fastgpt_collectionId = fastgpt_upload_result['data']['collectionId']
 
     if paper_id:
         update_paper_fastgpt_collection(paper_id=paper_id, fastgpt_collectionId=fastgpt_collectionId)
