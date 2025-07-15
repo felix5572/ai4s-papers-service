@@ -106,6 +106,14 @@ def list_papers(request):
     return Paper.objects.filter(is_active=True)  # type: ignore
 
 
+@api.patch("/papers/{paper_id}/fastgpt-collectionId")
+def update_paper_fastgpt_collection(request, paper_id: int, fastgpt_collectionId: str):
+    """Update paper's FastGPT collection ID"""
+    paper = Paper.objects.get(id=paper_id)
+    paper.fastgpt_collectionId = fastgpt_collectionId
+    paper.save(update_fields=['fastgpt_collectionId'])
+    return {"success": True, "paper_id": paper_id, "fastgpt_collectionId": fastgpt_collectionId}
+
 @api.post("/papers", response=PaperOut)
 @transaction.atomic
 def create_paper(request):
@@ -141,6 +149,7 @@ def create_paper(request):
     else:
         # JSON请求 - 纯元数据
         paper_data = request.json
+    
     
     # 统一创建Paper对象
     return Paper.objects.create(**paper_data)

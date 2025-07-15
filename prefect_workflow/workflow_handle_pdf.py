@@ -9,7 +9,7 @@ from prefect import flow, task
 from prefect.artifacts import create_markdown_artifact
 from pathlib import PurePosixPath
 from urllib.parse import urlparse
-
+from typing import Optional
 
 from markdown_agent.md_paper_metadata_agent import md_paper_metadata_agent, PaperMetadataSchema
 from google.adk.runners import Runner
@@ -214,13 +214,24 @@ def save_origin_file_md_to_db(
     response = requests.post(f"{api_base_url}/papers", data=base_data, files=files)
     
     response.raise_for_status()
-    return response.json()
+
+    response_json = response.json()
+    print(f"save_origin_file_md_to_db response: {response_json=}")
+
+    
+    return response_json
 #%%
+
+def update_paper_fastgpt_collection(paper_id: int, fastgpt_collectionId: str):
+    response = requests.patch(f"{DJANGO_API_ENDPOINT}/papers/{paper_id}/fastgpt-collectionId", json={"fastgpt_collectionId": fastgpt_collectionId})
+    response.raise_for_status()
+    return response.json()
 
 @task(retries=3, retry_delay_seconds=600)
 def upload_to_fastgpt_dataset(
     file_path: str,
-    dataset_id: str = DATASET_ID, 
+    dataset_id: str = DATASET_ID,
+    paper_id: Optional[int] = None,
     fastgpt_weburl: str = FASTGPT_WEBURL, 
     fastgpt_developer_api_key: str = FASTGPT_DEVELOPER_API_KEY
 ) -> dict:
@@ -253,8 +264,23 @@ def upload_to_fastgpt_dataset(
         )
         response.raise_for_status()
     
-    upload_result = response.json()
-    print(f"upload_to_fastgpt_dataset result: {upload_result=}")
+    fastgpt_upload_result = response.json()
+
+
+    print(f"upload_to_fastgpt_dataset result: {fastgpt_upload_result=}")
+
+    fastgpt_collectionId = upload_result['data']['id']
+
+    if paper_id:
+        update_paper_fastgpt_collection(paper_id=paper_id, fastgpt_collectionId=fastgpt_collectionId)
+    else:
+        pass
+
+    upload_result = {
+        "paper_id": paper_id,
+        "fastgpt_upload_result": fastgpt_upload_result
+    }
+
     return upload_result
 
 
@@ -334,8 +360,11 @@ def workflow_handle_pdf_to_db_and_fastgpt(
         primary_domain=primary_domain,
         paper_metadata=paper_metadata)
 
+    paper_id = save_result['id']
+
     upload_result = upload_to_fastgpt_dataset(
         file_path=markdown_file_path,
+        paper_id=paper_id
     )
 
 
