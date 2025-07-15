@@ -1,3 +1,4 @@
+import json
 from ninja import NinjaAPI, Form, File  
 from ninja.files import UploadedFile
 from typing import Optional
@@ -109,7 +110,8 @@ def list_papers(request):
 @api.patch("/papers/{paper_id}/fastgpt-collectionId")
 def update_paper_fastgpt_collection(request, paper_id: int):
     """Update paper's FastGPT collection ID"""
-    data = request.json
+
+    data = json.loads(request.body)
     fastgpt_collectionId = data.get("fastgpt_collectionId")
     
     if not fastgpt_collectionId:
