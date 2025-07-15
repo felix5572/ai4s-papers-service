@@ -107,8 +107,14 @@ def list_papers(request):
 
 
 @api.patch("/papers/{paper_id}/fastgpt-collectionId")
-def update_paper_fastgpt_collection(request, paper_id: int, fastgpt_collectionId: str):
+def update_paper_fastgpt_collection(request, paper_id: int):
     """Update paper's FastGPT collection ID"""
+    data = request.json
+    fastgpt_collectionId = data.get("fastgpt_collectionId")
+    
+    if not fastgpt_collectionId:
+        return {"success": False, "error": "fastgpt_collectionId is required"}
+    
     paper = Paper.objects.get(id=paper_id)
     paper.fastgpt_collectionId = fastgpt_collectionId
     paper.save(update_fields=['fastgpt_collectionId'])
