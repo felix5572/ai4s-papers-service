@@ -10,6 +10,7 @@ from prefect.artifacts import create_markdown_artifact
 from pathlib import PurePosixPath
 from urllib.parse import urlparse
 from typing import Optional
+import shutil
 
 from markdown_agent.md_paper_metadata_agent import md_paper_metadata_agent, PaperMetadataSchema
 from google.adk.runners import Runner
@@ -118,6 +119,24 @@ def parse_md_file_to_markdown(
     return pdf_parse_result
 
 
+def rename_file_to_txt(origin_file_path: str, temp_workdir: str) -> dict:
+    filename = os.path.basename(origin_file_path)
+    new_filename = filename + '.txt'
+    new_file_path = os.path.join(temp_workdir, new_filename)
+    
+    # Copy the original file to temp directory with .txt appended
+    shutil.copy(origin_file_path, new_file_path)
+
+    parser_metadata = {'if_copy_to_txt': True}
+
+    pdf_parse_result = {
+        "origin_file_path": origin_file_path,
+        "markdown_file_path": new_file_path,
+        "parser_metadata": parser_metadata
+    }
+
+    return pdf_parse_result
+
 @task
 def parse_origin_file_to_markdown(
         origin_file_path: str,
@@ -131,8 +150,13 @@ def parse_origin_file_to_markdown(
             origin_file_path=origin_file_path,
             temp_workdir=temp_workdir
         )
-    elif file_extension == '.md' or file_extension == '.txt' or file_extension == '.rst' or file_extension == '.ipynb':
+    elif file_extension == '.md' or file_extension == '.txt' :
         pdf_parse_result = parse_md_file_to_markdown(
+            origin_file_path=origin_file_path,
+            temp_workdir=temp_workdir
+        )
+    elif file_extension == '.rst' or file_extension == '.ipynb' :
+        pdf_parse_result = rename_file_to_txt(
             origin_file_path=origin_file_path,
             temp_workdir=temp_workdir
         )

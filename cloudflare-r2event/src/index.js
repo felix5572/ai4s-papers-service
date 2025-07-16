@@ -118,12 +118,12 @@ export default {
       try {
         const event = message.body;
         
-        // Only process PDF files
-        // if (!event.object.key.endsWith('.pdf')) {
-        //   console.log(`Skipping non-PDF file: ${event.object.key}`);
-        //   message.ack();
-        //   continue;
-        // }
+        // Only process files
+        if (!event.object.key.endsWith('/')) {
+          console.log(`Skipping non-file file: ${event.object.key}`);
+          message.ack();
+          continue;
+        }
         
         const s3_object_url = `${env.R2_PUBLIC_URL}/${event.object.key}`;
         
