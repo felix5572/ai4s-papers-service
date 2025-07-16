@@ -103,8 +103,8 @@ def parse_md_file_to_markdown(
         origin_file_path: str,
         temp_workdir: str
     ) -> dict:
-    if not origin_file_path.endswith('.md') and not origin_file_path.endswith('.txt') and not origin_file_path.endswith('.rst'):
-        raise ValueError(f"Unsupported file type: {origin_file_path=} must be .md or .txt or .rst markdown file")
+    if not origin_file_path.endswith('.md') and not origin_file_path.endswith('.txt') and not origin_file_path.endswith('.rst') and not origin_file_path.endswith('.ipynb'):
+        raise ValueError(f"Unsupported file type: {origin_file_path=} must be .md or .txt or .rst or .ipynb markdown file")
     
     parser_metadata = {}
     # markdown_text = 
@@ -131,7 +131,7 @@ def parse_origin_file_to_markdown(
             origin_file_path=origin_file_path,
             temp_workdir=temp_workdir
         )
-    elif file_extension == '.md' or file_extension == '.txt' or file_extension == '.rst':
+    elif file_extension == '.md' or file_extension == '.txt' or file_extension == '.rst' or file_extension == '.ipynb':
         pdf_parse_result = parse_md_file_to_markdown(
             origin_file_path=origin_file_path,
             temp_workdir=temp_workdir
